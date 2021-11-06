@@ -185,14 +185,17 @@ class Comparator:
 
 # rarities = RarityGetter('cyberpharmacist')
 # # print(rarities.attribs)
-# rarities.plot_attribs('Brain', 'showKeys')
+# attribs = ['Background', 'Brain', 'Plant', 'Body', 'Neck', 'Arms', 'Face', 'Eyes', 'Headwear', 'Mask']
+# for attrib in attribs:
+#     rarities.plot_attribs(attrib)
 
 # data = NFTGetter('cyberpharmacist')
 # attribs = data.parse_rarity(data.data[1], rarities.attribs)
 # print(attribs)
-# data = NFTGetter('cyberpharmacist')
-# nfts = data.parse_rarities()
+data = NFTGetter('cyberpharmacist')
+nfts = data.parse_rarities()
 
-# db = DataBase()
-# comparator = Comparator(db, nfts, 'add_new')
-# db.save()
+db = DataBase()
+comparator = Comparator(db, nfts, 'add_new')
+print(db.log.call)
+db.save()

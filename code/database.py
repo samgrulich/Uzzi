@@ -36,9 +36,10 @@ class HistoryLogType(enum.Enum):
 
 
 class HistoryLog(DataLoader):
-    empty_log = {'0': {}}
+    empty_log = {}
 
     def __init__(self, id: str='nft_db0_log', path: str='') -> None:
+        self.call = 0
         if path == '':
             path = os.path.relpath('DBs/logs/')
 
@@ -50,12 +51,17 @@ class HistoryLog(DataLoader):
 
         self._load_file(id, path)
 
+        print(len(self.data))
+
 
     def add_log(self, type: HistoryLogType, data):
-        print('adding e_type: ', type)
+        #print('adding e_type: ', type)
+        self.call += 1
         actual_time = time.time_ns()
 
-        self.data[actual_time] = {'e_type': type.value, 'data': data}
+        if not actual_time in self.data.keys():
+            self.data[actual_time] = []    
+        self.data[actual_time].append({'e_type': type.value, 'data': data})
 
 
     def save(self):
@@ -95,7 +101,7 @@ class DataBase(DataLoader):
         if id in self.data['ids']:
             self._update(id, data)
         else:
-            self._add(id , data)
+            self._add(id, data)
 
     
     def remove(self, id: int):
@@ -113,7 +119,7 @@ class DataBase(DataLoader):
 
 
     def _update(self, id: int, new_data: dict) -> bool:
-        old_data = self.data['data'][id]
+        old_data = self.data['data'][str(id)]
         result = False
 
         for key in new_data.keys():
