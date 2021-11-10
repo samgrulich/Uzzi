@@ -1,10 +1,16 @@
+import os
 import math
 import enum
 import requests
 
 from matplotlib import pyplot as plt
 
-from database import DataBase
+if not __name__ == '__main__':
+    from code.database import DataBase
+    from code.__init__ import PROJECT_PATH
+else:
+    from database import DataBase
+    from __init__ import PROJECT_PATH
 
 
 
@@ -63,7 +69,18 @@ class RarityGetter(Getter):
         plt.title(f'{self.url_data.collection} {attrib_type} rarity')
         plt.xticks(rotation = 45)
 
-        plt.show()
+        if 'save' in flags:
+            path = f'{PROJECT_PATH}\\Graphs\\{self.url_data.collection}'
+            file_path = f'{path}\\{attrib_type}.png'
+
+            if not os.path.exists(path):
+                os.mkdir(path)
+
+            if not os.path.exists(file_path) and not 'force_save' in flags:
+                plt.savefig(f'{file_path}')
+
+        if not 'hide' in flags:
+            plt.show()
     
 
     # private:
@@ -182,20 +199,21 @@ class Comparator:
         for nft in self.data[:50]:
             self.database.add(nft)
             
+if __name__ == '__main__':
+    rarities = RarityGetter('cyberpharmacist')
+    
+    attribs = ['Background', 'Brain', 'Plant', 'Body', 'Neck', 'Arms', 'Face', 'Eyes', 'Headwear', 'Mask']
+    
+    for attrib in attribs:
+        print(attrib)
+        rarities.plot_attribs(attrib, 'save', 'hide')
 
-# rarities = RarityGetter('cyberpharmacist')
-# # print(rarities.attribs)
-# attribs = ['Background', 'Brain', 'Plant', 'Body', 'Neck', 'Arms', 'Face', 'Eyes', 'Headwear', 'Mask']
-# for attrib in attribs:
-#     rarities.plot_attribs(attrib)
+    # data = NFTGetter('cyberpharmacist')
+    # attribs = data.parse_rarity(data.data[1], rarities.attribs)
+    # print(attribs)
+    # data = NFTGetter('cyberpharmacist')
+    # nfts = data.parse_rarities()
 
-# data = NFTGetter('cyberpharmacist')
-# attribs = data.parse_rarity(data.data[1], rarities.attribs)
-# print(attribs)
-data = NFTGetter('cyberpharmacist')
-nfts = data.parse_rarities()
-
-db = DataBase()
-comparator = Comparator(db, nfts, 'add_new')
-print(db.log.call)
-db.save()
+    # db = DataBase()
+    # comparator = Comparator(db, nfts, 'add_new')
+    # db.save()

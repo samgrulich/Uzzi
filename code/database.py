@@ -39,7 +39,6 @@ class HistoryLog(DataLoader):
     empty_log = {}
 
     def __init__(self, id: str='nft_db0_log', path: str='') -> None:
-        self.call = 0
         if path == '':
             path = os.path.relpath('DBs/logs/')
 
@@ -56,7 +55,6 @@ class HistoryLog(DataLoader):
 
     def add_log(self, type: HistoryLogType, data):
         #print('adding e_type: ', type)
-        self.call += 1
         actual_time = time.time_ns()
 
         if not actual_time in self.data.keys():
@@ -119,14 +117,16 @@ class DataBase(DataLoader):
 
 
     def _update(self, id: int, new_data: dict) -> bool:
+        print(str(id))
         old_data = self.data['data'][str(id)]
+        print(id, old_data)
         result = False
 
         for key in new_data.keys():
             if key in old_data.keys():
                 new_value = new_data[key]
                 if not old_data[key] == new_value:
-                    self.data['data'][id] = new_value
+                    self.data['data'][str(id)] = new_value
                     result = True
 
         if result:

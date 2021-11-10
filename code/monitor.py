@@ -1,11 +1,12 @@
 import time
 
-from database import HistoryLog, HistoryLogType
+from code.database import DataBase
+from code.data import NFTGetter, Comparator
 
 
 
 class Monitor:
-    def __init__(self, log: HistoryLog, **kwargs) -> None:
+    def __init__(self, collection:str, database:DataBase=DataBase(), **kwargs) -> None:
         keys = kwargs.keys()
 
         time_now = 5e12 #5e9 # - 5sec
@@ -25,7 +26,22 @@ class Monitor:
         self.time = time_now
         self.e_type = e_type
         self.price = price
-        self.log = log.data
+        self.database = database
+        self.collection = collection
+        self.log = database.log.data
+
+
+    def update(self, filter=True) -> dict:
+        data = NFTGetter(self.collection)
+        nfts = data.parse_rarities()
+
+        Comparator(self.database, nfts, 'add_new')
+        self.database.save()
+
+        if filter:
+            result = self.filter()
+            return result
+        return None
 
 
     def filter(self) -> dict:
@@ -81,8 +97,8 @@ class Monitor:
 
         return result
 
-monitor = Monitor(HistoryLog(), Background=10)
+monitor = Monitor('cyberpharmacist', Background=10)
 result = monitor.filter()
 
-print(result)
+# print(result)
         

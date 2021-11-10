@@ -14,6 +14,14 @@ https://qzlsklfacc.medianetwork.cloud/nft_for_sale?collection=cyberpharmacist
 Basic shapes
 Memes
 
+Rankig:
+    first (manual)
+        -Table
+    next (auto)
+        -Howrare
+        -Moonrank
+
+
 Mask (12.31) - 6.38
 Trait Count: 10 (12.23)
 Arms (9.49) - 5.91
@@ -21,3 +29,31 @@ Body (4.74) - 8.21
 Background (4.52) - 7.88
 Brain (4.28) - 9.66
 Eyes (4.03) - 12.16
+
+1595444
+1595444 {'id': 1595444, 'token_add': 'BJnEkjWHADpayFWeK1BA2MaUKrCdkJdvCr6dMDFqjTSq', 'price': 0.79, 'for_sale': 1, 'link_img': 'https://www.arweave.net/Wgw2xt2yd5bIzr0R46rBZWSR6FzndfLkyS7KbeW3zeA?ext=png', 'name': 'Cyber Pharmacist 4260', 'escrowAdd': 'DhPxvVi9gj3mdSUwJignK8BCAqggvNBxyazx51jfB7gi', 'seller_address': 'Dv2hu6YYcQhMMyAF8d7AccKieJNfrGp1JrMf5pZ1UFg1', 'attributes': {'Background': {'Wine': 18.45}, 'Brain': {'LiquidBronze': 2.92}, 'Plant': {'PinkCarpet': 7.12}, 'Body': {'Hologram': 2.72}, 'Neck': {'GoldWire': 13.04}, 'Arms': {'RobotSilver': 11.1}, 'Face': {'Marble': 19.75}, 'Eyes': {'Purple': 12.09}, 'Mask': {'CyberPharma': 6.38}, 'Headwear': {'GoldHeadphones': 16.34}, 'AttributeCount': 10}, 'skin': None, 'type': 'cyberpharmacist', 'ranking': None, 'lastSoldPrice': 0.5}
+1625673
+1625673 {'id': 1625673, 'token_add': '6jwdAtZFdGi6y9BYqYmdLGzX5ixveGDatvuB9fB6NgwV', 'price': 0.79, 'for_sale': 1, 'link_img': 'https://www.arweave.net/r5Qm0KB0bWI8c1O2_LVZBiMlAfL2WfXa6PfLjj4eMj0?ext=png', 'name': 'Cyber Pharmacist 6711', 'escrowAdd': 'J1qPycsT1Uko2Ysk62HCsDsCxWJxDoYHNAEBW4XhVXWk', 'seller_address': '6tFLQhfWdMzAAhvcK27xmvfrVDn3TQJpfPCtBsnF5er1', 'attributes': {'Background': {'Silver': 6.21}, 'Brain': {'LiquidRhodium': 0.78}, 'Plant': {'Floripondio': 17.02}, 'Body': {'Pharmacist': 17.64}, 'Neck': {'Ivy': 14.6}, 'Arms': {'Flower': 12.38}, 'Face': {'Joint': 8.09}, 'Eyes': {'Yellow': 15.45}, 'Headwear': {'DreadTech': 3.86}, 'AttributeCount': 10}, 'skin': None, 'type': 'cyberpharmacist', 'ranking': None, 'lastSoldPrice': 0.59}
+1645246
+1645246 {'id': 1645246, 'token_add': '8dBFmxp1MDymC2o9gCCg9GUq6wzVsvStNCS6FjDSjWwk', 'price': 0.79, 'for_sale': 1, 'link_img': 'https://www.arweave.net/zTSnmPwVRjg7u8k_7RlditncUGRILmhK3x8-qNGqDeU?ext=png', 'name': 'Cyber Pharmacist 6267', 'escrowAdd': 'AGiCrTp1geKwqYa6wAyZimiJGYTY5Z5uN2degyqvsULp', 'seller_address': 'GHqzeEowPVJAAxVY9P1nDW7uMtEtNvDCz5xi6FEY3yhM', 'attributes': {'Background': {'Charcoal': 18.97}, 'Brain': {'Gears': 10.61}, 'Plant': {'GhostOrchid': 0.9}, 'Body': {'LiquidBronze': 14.92}, 'Neck': {'RainbowWire': 14.14}, 'Arms': {'RoseGold': 5.0}, 'Face': {'HempWood': 16.86}, 'Eyes': {'Screen': 7.05}, 'Headwear': {'GoldHeadphones': 16.34}, 'AttributeCount': 10}, 'skin': None, 'type': 'cyberpharmacist', 'ranking': None, 'lastSoldPrice': 0.55}
+1645450
+1645450 0.79
+Unhandled exception in internal background task 'main_loop'.
+Traceback (most recent call last):
+  File "d:\Projekty\dev\FakeExcel\python\venv\lib\site-packages\discord\ext\tasks\__init__.py", line 101, in _loop
+    await self.coro(*args, **kwargs)
+  File "d:\Projekty\dev\FakeExcel\python\bot.py", line 150, in main_loop
+    await update(channel)
+  File "d:\Projekty\dev\FakeExcel\python\bot.py", line 96, in update
+    filtered = monitor.update()
+  File "d:\Projekty\dev\FakeExcel\python\code\monitor.py", line 38, in update
+    Comparator(self.database, nfts, 'add_new')
+  File "d:\Projekty\dev\FakeExcel\python\code\data.py", line 177, in __init__
+    func()
+  File "d:\Projekty\dev\FakeExcel\python\code\data.py", line 192, in add_new
+    self.database.add(nft)
+  File "d:\Projekty\dev\FakeExcel\python\code\database.py", line 100, in add
+    self._update(id, data)
+  File "d:\Projekty\dev\FakeExcel\python\code\database.py", line 126, in _update
+    if key in old_data.keys():
+AttributeError: 'float' object has no attribute 'keys'
