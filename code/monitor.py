@@ -1,7 +1,7 @@
 import time
 
 from code.database import DataBase
-from code.data import NFTGetter, Comparator
+from code.data import NFTData, Comparator
 
 
 
@@ -32,7 +32,7 @@ class Monitor:
 
 
     def update(self, filter=True) -> dict:
-        data = NFTGetter(self.collection)
+        data = NFTData(self.collection)
         nfts = data.parse_rarities()
 
         Comparator(self.database, nfts, 'add_new')

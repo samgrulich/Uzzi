@@ -5,127 +5,123 @@ import requests
 
 from matplotlib import pyplot as plt
 
-if not __name__ == '__main__':
-    from code.database import DataBase
-    from code.__init__ import PROJECT_PATH
-else:
-    from database import DataBase
-    from __init__ import PROJECT_PATH
+# from code import PROJECT_PATH
+# from code.new_db import Data, Database
+from db import Data, Database
 
 
 
-class Querry(enum.Enum):
-    rarity = 'rarity?collection='
-    nfts = 'nft_for_sale?collection='
-    general = 'query_volume_per_collection?collection='
+class Querry:
+    class Type(enum.Enum):
+        rarity = 'rarity?collection='
+        nfts = 'nft_for_sale?collection='
+        general = 'query_volume_per_collection?collection='
+    
 
 
-
-class UrlData:
     URL = 'https://qzlsklfacc.medianetwork.cloud/'
 
-    def __init__(self, querry: Querry, collection: str) -> None:
-        self.url = f'{UrlData.URL}{querry.value}{collection}'
+
+    def __init__(self, querry: Type, collection: str) -> None:
+        """
+        Store important querry data 
+        """
         self.querry = querry
         self.collection = collection
 
 
-
-class Getter:
-    def __init__(self, querry: Querry, collection: str) -> None:
-        url_data = UrlData(querry, collection)
-        self.url_data = url_data
-
-        data = requests.get(url_data.url).json()
-        self.data = data
-
-
-
-class RarityGetter(Getter):
-    def __init__(self, collection: str) -> None:
-        super().__init__(Querry.rarity, collection)
-    
-
-    # public: 
-    def plot_attribs(self, attrib_type, *flags) -> None:
+    def Get_rawdata(self, collection:str=None) -> dict:
         """
-        Plots given attrib \n
-        flags: \n
-        \t showKeys - show attbibs type options
-        \t silent - don't print attrib data
+        Request data from internet 
+        \t returns dictionary
         """
-        attribs = self.attribs
-        attrib_pairs = attribs[attrib_type]
-
-        if 'showKeys' in flags:
-            print('keys: ', attribs.keys())
+        if not collection:
+            collection = self.collection
         
-        if not 'silent' in flags:
-            print('attrib_data', attrib_pairs)
+        return requests.get(self.url).json()
 
-        for label, value in attrib_pairs.items():
-            plt.bar(label, float(value))
 
-        plt.title(f'{self.url_data.collection} {attrib_type} rarity')
-        plt.xticks(rotation = 45)
+    @property
+    def url(self) -> str:
+        return f'{Querry.URL}{self.querry.value}{self.collection}'
 
-        if 'save' in flags:
-            path = f'{PROJECT_PATH}\\Graphs\\{self.url_data.collection}'
-            file_path = f'{path}\\{attrib_type}.png'
 
-            if not os.path.exists(path):
-                os.mkdir(path)
 
-            if not os.path.exists(file_path) and not 'force_save' in flags:
-                plt.savefig(f'{file_path}')
+class Attribute():
+    def __init__(self, type_:str) -> None:
+        "Keep track of atribute data"
+        self.type = type_
+        self.values = {}
 
-        if not 'hide' in flags:
-            plt.show()
+    
+    def Add(self, value: str, rarity: str or float) -> None:
+        "Add rarity"
+        self.values[value] = float(rarity)
+
+
+    def Rarity(self, value: str) -> float:
+        "Get rarity of one value"
+        return self.values[value]
+
+    
+    @property
+    def sum(self) -> float:
+        "Sum of rarities "
+        return sum(self.values.values())
+
+
+
+class CollectionData(Querry):
+    def __init__(self, collection: str) -> None:
+        super().__init__(Querry.Type.rarity, collection)
     
 
     # private:
-    def _get_attribs(self) -> dict:
+    def _parse_attribs_rarities(self) -> dict:
         """
         Export attribs from json data object \n
          returns dict obj
         """
-        data = self.data
+        rawdata = self.Get_rawdata()
         attribs = {}
-        attribs_sum = {}
 
-        for key in data.keys():
-            type_, data_ = key.split(':')
-            rarity_ = float(data[key])
+        for key in rawdata.keys():
+            att_type, att_value = key.split(':')
+            att_rarity = float(rawdata[key])
 
-            if not type_ in attribs.keys():
-                attribs[type_] = {}
-                attribs_sum[type_] = 0
+            if not att_type in attribs.keys():
+                attribs[att_type] = Attribute(att_type)
             
-            data_ = data_.replace(' ', '')
-            attribs[type_][data_] = rarity_
-            attribs_sum[type_] += rarity_
-        
-        for attrib_sum in attribs_sum.items():
-            type_, value_ = attrib_sum
-            
-            if not math.ceil(value_) == 100:
-                attribs[type_]['None'] = 100 - value_
+            att_value = att_value.replace(' ', '')
+            attribs[att_type].Add(att_value, att_rarity)
+
+        for attrib in attribs.values():
+            if not math.ceil(attrib.sum) == 100:
+                attribs[att_type].Add('None', 100 - attrib.sum)
 
         return attribs
 
 
     @property
     def attribs(self):
-        return self._get_attribs()
+        "Actually attribs are being updated every call, so I strongly `recommend to keep copy of them`"
+        return self._parse_attribs_rarities()
 
 
 
-class NFTGetter(Getter):
+class NFTData(Querry):
     def __init__(self, collection: str) -> None:
-        super().__init__(Querry.nfts, collection)
+        super().__init__(Querry.Type.nfts, collection)
+
+        self.nfts = None
+        self.rarities = CollectionData(self.collection)
 
 
-    def parse_rarity(self, nft: dict, attrib_rarities: dict):
+    def Extract_nft(self, nft: dict, attrib_rarities: dict) -> dict:
+        """
+        Extract atributes for easier manipulation with each nft
+        \t returns nft
+        """
         attribs = nft['attributes'].split(',')
         parsed_attribs = {}
         attribs_sum = 10
@@ -138,7 +134,7 @@ class NFTGetter(Getter):
 
                 continue
 
-            value_ = float(attrib_rarities[type_][data_])
+            value_ = float(attrib_rarities[type_].Rarity(data_))
             parsed_attribs[type_] = {data_: value_}
 
         parsed_attribs['AttributeCount'] = attribs_sum
@@ -146,74 +142,36 @@ class NFTGetter(Getter):
         return nft
 
 
-    def parse_rarities(self):
-        rarities = RarityGetter(self.url_data.collection)
+    def Extract_nfts(self) -> list[dict]:
+        """
+        Download and extract nfts for easier code manipulation
+        \t returns list of nfts
+        """
+        self.rarities = CollectionData(self.collection)
+        rawdata = self.Get_rawdata(self.collection)
         data = []
+        rarities = self.rarities.attribs
 
-        for nft in self.data:
-            nft_data = self.parse_rarity(nft, rarities.attribs)
+        for i, nft in enumerate(rawdata):
+            nft_data = self.Extract_nft(nft, rarities)
             data.append(nft_data)
 
+        self.nfts = data
         return data
 
 
 
-class GeneralGetter:
-    """
-    Not aviable yet
-    """
-    pass
+def load_nfts(collection) -> list[dict]:
+    raw_nfts = NFTData(collection)
+    nfts = raw_nfts.Extract_nfts()
+    return nfts
 
 
-
-class Comparator:
-    def __init__(self, database: DataBase, data: list, *actions) -> None:
-        self.database = database
-        self.data = data
-        
-        for action in actions:
-            if hasattr(self.__class__, action) and callable(getattr(self.__class__, action)):
-                func = eval(f'self.{action}')
-                func()
-
-
-    def add_new(self):
-        ids = self.database.data['ids']
-        last_nft_index = -1
-
-        for i, nft in enumerate(self.data):
-            if nft['id'] == ids[0]:
-                last_nft_index = i
-                break
-        
-        print(f'updating {last_nft_index}')
-        
-        for nft in self.data[:last_nft_index]:
-            self.database.add(nft)
-
-    
-    def update(self):
-        """
-        Prefer using add_new instead
-        """
-        for nft in self.data[:50]:
-            self.database.add(nft)
-            
 if __name__ == '__main__':
-    rarities = RarityGetter('cyberpharmacist')
-    
-    attribs = ['Background', 'Brain', 'Plant', 'Body', 'Neck', 'Arms', 'Face', 'Eyes', 'Headwear', 'Mask']
-    
-    for attrib in attribs:
-        print(attrib)
-        rarities.plot_attribs(attrib, 'save', 'hide')
+    nfts = load_nfts('cyberpharmacist')
+    database = Database(0, './DBs/')
 
-    # data = NFTGetter('cyberpharmacist')
-    # attribs = data.parse_rarity(data.data[1], rarities.attribs)
-    # print(attribs)
-    # data = NFTGetter('cyberpharmacist')
-    # nfts = data.parse_rarities()
+    for nft in nfts:
+        database.Add(nft)
 
-    # db = DataBase()
-    # comparator = Comparator(db, nfts, 'add_new')
-    # db.save()
+    database.Save()

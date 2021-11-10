@@ -6,7 +6,7 @@ from dotenv import dotenv_values
 import os, sys, time
 
 from code.monitor import Monitor
-from code.data import RarityGetter 
+from code.data import CollectionData 
 from code.__init__ import PROJECT_PATH
 
 
