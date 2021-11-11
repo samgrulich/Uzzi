@@ -146,9 +146,29 @@ class Log(Data):
         return super().Add(data, id=id)
 
     
-    def Request(self, id, **kwargs) -> dict:
+    def Request(self, id=None, time=None) -> list[dict]:
+        """
+        Request log by id or multiple in given time frame from now(s)
+        \t returns list of logs
+        """
         #TODO: implement kwargs querrying
-        return super().Request(id)
+        
+        if id:
+            return [super().Request(id)]
+
+        if time:
+            filtered = self.item_cache
+
+            max_time = time.time_ns() - (time * 1e9)
+
+            filtered = filter(
+                lambda log: 
+                log['time'] >= max_time, 
+                filtered)
+
+            return filtered
+
+        return None
 
 
 
@@ -213,9 +233,40 @@ class Database(Data):
         self._remove(id)
 
 
-    def Request(self, id) -> dict:
-        # TODO
-        return super().Request(id)
+    def Request(self, time:int=10, **kwagrs) -> list[dict]:
+        keys = kwagrs.keys()
+        logs = self.log.Request(time=time)
+
+        if not len(keys) > 0 and logs:
+            return None 
+
+        filtered = []
+        for log in logs:
+            id_index = self.id_cache.index(log['id'])
+            item = self.item_cache[id_index]
+            condition = True
+
+            if 'price' in keys and item['price'] > kwagrs['price']:
+                kwagrs.pop('price')
+                condition = False
+                continue
+
+            if 'rank' in keys and item['rank'] > kwagrs['rank']:
+                kwagrs.pop('rank')
+                condition = False
+                continue
+            
+            # attribute filtering
+            if kwagrs:
+                item_attributes = item['attributes']
+                for att_type, att_rarity in kwagrs.items():
+                    if att_type in item_attributes.keys() and next(iter(item_attributes.values())) > att_rarity:
+                        condition = False
+                        continue
+
+            if condition:
+                filtered.append(item)
+
 
 
     def Save(self) -> None:

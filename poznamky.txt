@@ -16,14 +16,16 @@ Memes
 
 TODO:
 {
-  Request querrying
+  done - Request querrying
+  
+  done - There may be problem with sorting incoming nfts
 
   Rankig:
     first (manual)
       -Table
-    next (auto)
-      -Howrare
-      -Moonrank
+    done - next (auto)
+      -Howrare 
+      -Moonrank (https://moonrank.app/mints/hot_spring_apes?after=0&seen=5555&complete=true)
 }
 
 
