@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 # from code import PROJECT_PATH
 # from code.new_db import Data, Database
-from db import Data, Database
+from db import DataSet, Database
 
 
 
@@ -48,7 +48,7 @@ class Querry:
 
 
 
-class Attribute():
+class Attribute:
     def __init__(self, type_:str) -> None:
         "Keep track of atribute data"
         self.type = type_
@@ -64,125 +64,44 @@ class Attribute():
         "Get rarity of one value"
         return self.values[value]
 
-    
-    @property
-    def sum(self) -> float:
-        "Sum of rarities "
-        return sum(self.values.values())
+
+
+class NFT:
+    def __init__(self, id: str, name: str, token:str, price: float, rank: int, image: str, attributes: dict) -> None:
+        "NFT class for unifying nft objects"
+        self.id = id
+        self.name = name
+        self.price = price
+        self.img = image
+        self.token = token
+        self.atts = attributes
+
+    # public
+    def vars(self) -> dict:
+        "Get dictionary of variables"
+        return vars(self)
 
 
 
-class CollectionData(Querry):
-    def __init__(self, collection: str) -> None:
-        super().__init__(Querry.Type.rarity, collection)
-    
-
-    # private:
-    def _parse_attribs_rarities(self) -> dict:
-        """
-        Export attribs from json data object \n
-         returns dict obj
-        """
-        rawdata = self.Get_rawdata()
-        attribs = {}
-
-        for key in rawdata.keys():
-            att_type, att_value = key.split(':')
-            att_rarity = float(rawdata[key])
-
-            if not att_type in attribs.keys():
-                attribs[att_type] = Attribute(att_type)
-            
-            att_value = att_value.replace(' ', '')
-            attribs[att_type].Add(att_value, att_rarity)
-
-        for attrib in attribs.values():
-            if not math.ceil(attrib.sum) == 100:
-                attribs[att_type].Add('None', 100 - attrib.sum)
-
-        return attribs
-
-
-    @property
-    def attribs(self):
-        "Actually attribs are being updated every call, so I strongly `recommend to keep copy of them`"
-        return self._parse_attribs_rarities()
-
-
-
-class RankParser:
-    # Page functions
-    #region
-
+class Parser:
     class Page:
         def __init__(self, url, collection) -> None:
             self.url = f'{url}/{collection}'
             self.support = self.get_support()
-        
 
-        def get_support(self, nft_id='') -> bool:
-            "Check wheter this page is on web"
-            response = requests.get(f'{self.url}/{nft_id}')
+
+        def get_support(self) -> bool: 
+            "Check if collection / given url exists"
+            response = requests.get(f'{self.url}')
             return response.status_code == 200
 
 
-        def export_rank(self, nft_id) -> int:
-            "Extract rank of nft"
+        def export_value(self, id):
             return None
 
 
-
-    class Howrare(Page):
-        def __init__(self, collection) -> None:
-            super().__init__('https://howrare.is', collection)
-
-
-        def export_rank(self, nft_id) -> int:
-            if not self.support:
-                return None
-
-            response = requests.get(f'{self.url}/{nft_id}')
-
-            if not response.status_code == 200:
-                return None
-
-            html = response.text
-            data = BeautifulSoup(html, 'html.parser')
-            rank = data.find("span", string="Rank").find_next('span').contents[0].getText()
-
-            return int(rank)
-
-    
-
-    class Moonrank(Page):
-        def __init__(self, collection) -> None:
-            super().__init__('https://moonrank.app/collection', collection)
-
-
-        def export_rank(self, nft_id) -> int:
-            if not self.support:
-                return None
-
-            response = requests.get(f'{self.url}/{nft_id}')
-
-            if not response.status_code == 200:
-                return None
-
-            html = response.text
-            data = BeautifulSoup(html, 'html.parser')
-            rank = data.find("span", attrs={'x-text': 'rank'}).getText()
-
-            return int(rank)
-
-    #endregion
-
-
-    def __init__(self, collection) -> None:
-        self.pages = [
-            RankParser.Howrare(collection),
-            RankParser.Moonrank(collection)
-        ]
-
+    def __init__(self, collection, *pages) -> None:
+        self.pages = [page for page in pages]
         self.support = self.get_support()
 
 
@@ -202,85 +121,180 @@ class RankParser:
         return support
 
 
-    def export_rank(self, nft_id) -> int:
+    def export_value(self, id) -> int:
         "Get rank value from supported page"
         if not self.support:
             return None
 
         page = self.pages[self.support]
-        return page.export_rank(nft_id)
+        return page.export_value(id)
 
 
 
-class NFTData(Querry):
-    def __init__(self, collection: str) -> None:
-        super().__init__(Querry.Type.nfts, collection)
+class RankParser(Parser):
+    # Page functions
+    #region
 
-        self.nfts = None
-        self.rank_parser = RankParser(collection)
-        self.rarities = CollectionData(collection)
-
-
-    def Extract_nft(self, nft: dict, attrib_rarities: dict, rank_support:bool=False) -> dict:
-        """
-        Extract atributes, rank for easier manipulation with each nft
-        \t returns nft
-        """
-        attribs = nft['attributes'].split(',')
-        parsed_attribs = {}
-        attribs_sum = 10
+    class Howrare(Parser.Page):
+        def __init__(self, collection) -> None:
+            super().__init__('https://howrare.is', collection)
 
 
-        # parse attrib rarities
-        for attrib in attribs:
-            type_, data_ = attrib.replace(' ', '').split(':')
+        def export_value(self, nft_id) -> int:
+            if not self.support:
+                return None
 
-            if data_ == 'None':
-                attribs_sum -= 1
+            response = requests.get(f'{self.url}/{nft_id}')
 
-                continue
+            if not response.status_code == 200:
+                return None
 
-            value_ = float(attrib_rarities[type_].Rarity(data_))
-            parsed_attribs[type_] = {data_: value_}
+            html = response.text
+            data = BeautifulSoup(html, 'html.parser')
+            rank = data.find("span", string="Rank").find_next('span').contents[0].getText()
 
-        parsed_attribs['AttributeCount'] = attribs_sum
+            return int(rank)
 
+    
 
-        # parse rank
-        rank = self.rank_parser.export_rank(nft['id'])
-
-
-        # save data
-        nft['attributes'] = parsed_attribs
-        nft['rank'] = rank
-        return nft
+    class Moonrank(Parser.Page):
+        def __init__(self, collection) -> None:
+            super().__init__('https://moonrank.app/collection', collection)
 
 
-    def Extract_nfts(self) -> list[dict]:
-        """
-        Download and extract nfts for easier code manipulation
-        \t returns list of nfts
-        """
-        self.rarities = CollectionData(self.collection)
-        rawdata = self.Get_rawdata(self.collection)
-        data = []
-        rarities = self.rarities.attribs
+        def export_value(self, nft_id) -> int:
+            if not self.support:
+                return None
 
-        for i, nft in enumerate(rawdata):
-            nft_data = self.Extract_nft(nft, rarities)
-            data.append(nft_data)
+            response = requests.get(f'{self.url}/{nft_id}')
 
-        data.reverse()
+            if not response.status_code == 200:
+                return None
 
-        self.nfts = data
-        return data
+            html = response.text
+            data = BeautifulSoup(html, 'html.parser')
+            rank = data.find("span", attrs={'x-text': 'rank'}).getText()
+
+            return int(rank)
+
+    #endregion
+
+    def __init__(self, collection) -> None:
+        super().__init__(collection, 
+            RankParser.Howrare(collection),
+            RankParser.Moonrank(collection))
+
+
+    def export_rank(self, nft_id) -> int:
+        "Get rank value from supported page"
+        return super().export_value(nft_id)
 
 
 
-def load_nfts(collection) -> list[dict]:
-    raw_nfts = NFTData(collection)
-    nfts = raw_nfts.Extract_nfts()
-    return nfts
+class NFTParser(Parser):
+    # Page functions
+    #region
+
+    class Solanart(Parser.Page):
+        def __init__(self, collection) -> None:
+            url = 'https://qzlsklfacc.medianetwork.cloud'
+
+            self.url = f'{url}/nft_for_sale?collection={collection}'
+            self.rarity_url = f'{url}/rarity?collection={collection}'
+            self.support = self.get_support()
+            self.atts = self._parse_atts()
+            self.rank_parser = RankParser(collection)
+
+
+        def export_nft(self, nft_raw) -> NFT:
+            "Export raw nft dict to polished NFT object"
+            nft_atts = self._parse_nft_atts(nft_raw['attributes'])
+            
+            nft = NFT(nft_raw['id'], nft_raw['name'], nft_raw['token_add'], nft_raw['price'], self.rank_parser.export_value(nft_raw['id']), nft_raw['link_img'], nft_atts)
+
+            return nft
+
+
+        def export_nfts(self) -> list(NFT):
+            "Export all nfts in raw data to list of polished nft objects"
+            nfts_raw = requests.get(self.url).json()
+            nfts = []
+
+            for nft_raw in nfts_raw:
+                nft = self.export_nft(nft_raw)
+                nfts.append(nft)
+
+            return nfts
+        
+
+        # private
+        #region
+        
+        def _parse_atts(self) -> dict:
+            "Extract rarities from rawdata to att_type:att_value:att_rarity table"
+            rawdata = requests.get(self.rarity_url).json()
+            atts = {}
+
+            for key, rarity in rawdata.items():
+                att_type, att_value = key.split(':')
+                att_rarity = float(rarity)
+
+                if not att_type in atts.keys():
+                    atts[att_type] = Attribute(att_type)
+                
+                att_value = att_value.replace(' ', '')
+                atts[att_type].Add(att_value, att_rarity)
+
+            return atts
+
+
+        def _parse_nft_atts(self, atts_str:str) -> dict:
+            "Extract attributes from raw data and add meta data to them"
+            atts = atts_str.split(',')
+            parsed_atts = {}
+            att_rarities = self._parse_atts()
+
+            for att in atts:
+                type_, data_ = att.replace(' ', '').split(':')
+
+                value_ = float(att_rarities[type_].Rarity(data_))
+                parsed_atts[type_] = {data_: value_}
+
+            parsed_atts['atributeCount'] = len(parsed_atts)
+            return parsed_atts
+
+        #endregion
+
+
+    class Magiceden(Parser.Page):
+        def __init__(self, collection) -> None:
+            super().__init__('https://magiceden.io/marketplace', collection)
+
+
+        def export_nfts(self) -> list(NFT):
+            pass
+
+    #endregion
+
+    
+    def __init__(self, collection) -> None:
+        super().__init__(collection, 
+            NFTParser.Solanart(collection))
+
+
+    def parse(self, nft: dict) -> NFT:
+        if self.support == None:
+            return None
+
+        self.pages[self.support].export_nft(nft)
+
+
+    def parse_all(self) -> list(NFT):
+        if self.support == None:
+            return None
+
+        self.pages[self.support].export_nfts()
+
 
 
 if __name__ == '__main__':

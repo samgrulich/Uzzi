@@ -16,19 +16,12 @@ Memes
 
 TODO:
 {
-  done - Request querrying
-  
-  done - There may be problem with sorting incoming nfts
-
   Rankig:
     first (manual)
       -Table
-    done - next (auto)
-      -Howrare 
-      -Moonrank (https://moonrank.app/mints/hot_spring_apes?after=0&seen=5555&complete=true)
 }
 
-
+https://api-mainnet.magiceden.io/rpc/getListedNFTsByQuery?q=%7B%22%24match%22%3A%7B%22collectionSymbol%22%3A%22thugbirdz%22%7D%2C%22%24sort%22%3A%7B%22createdAt%22%3A-1%7D%2C%22%24skip%22%3A0%2C%22%24limit%22%3A20%7D
 
 
 Mask (12.31) - 6.38

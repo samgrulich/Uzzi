@@ -5,7 +5,7 @@ import enum
 
 
 
-class Data:
+class DataSet:
     def __init__(self, dict_initiator:dict=None) -> None:
         """
         Data class for easier data manipulation
@@ -87,7 +87,7 @@ class Data:
 
 class DataLoader:
     @staticmethod
-    def Save(data:Data, path:str) -> bool:
+    def Save(data:DataSet, path:str) -> bool:
         """
         Save your Data object to file
         \t returns bool - whether action was successful
@@ -104,7 +104,7 @@ class DataLoader:
 
     
     @staticmethod
-    def Load(path:str, type_:type) -> Data:
+    def Load(path:str, type_:type) -> DataSet:
         """
         Load Data form file
         \t returns None if action was unsuccessful 
@@ -113,11 +113,11 @@ class DataLoader:
             return None
 
         with open(path, 'r', encoding='utf-8') as f:
-            return Data(json.load(f))
+            return DataSet(json.load(f))
 
 
 
-class Log(Data):
+class Log(DataSet):
     class Type(enum.Enum):
         add=0
         update=1
@@ -172,7 +172,7 @@ class Log(Data):
 
 
 
-class Database(Data):
+class Database(DataSet):
     def __init__(self, id, dir_path:str='', initiator:dict=None) -> None:
         super().__init__(initiator)
         
