@@ -1,6 +1,6 @@
-import time
+import os
 
-from code.data import Database, NFTParser, turbo_check
+from data import Database, NFTParser, turbo_check, get_last_nft
 
 
 
@@ -9,8 +9,16 @@ class Monitor:
         self.collection = collection
         self.filters = filters
 
-        self.database = Database(collection, './DBs/').Load()
+
+        dirpath = './DBs/'
+        database = Database(collection, dirpath)
+
+        if os.path.exists(os.path.join(dirpath, f'{collection}_db.json')):
+            database.Load()
+            
+        self.database = database
         self.nft_parser = NFTParser(collection)
+
 
         valid, nft_page, rank_page = self.get_support()
         self.valid = valid
@@ -20,22 +28,24 @@ class Monitor:
 
     def update(self) -> list[dict]:
         "Add new nfts on page to databse, returns added nfts"
-        changed = turbo_check(self.collection, self.database, self.nft_parser)
+        if len(self.database.id_cache): 
+            changed = turbo_check(self.collection, self.database, self.nft_parser)
 
-        if not changed:
-            return None
+            if not changed:
+                return None
 
         # database update
         nfts = self.nft_parser.parse_all()
         nfts.reverse()
+        # nfts = self.nft_parser.parse(get_last_nft(self.collection, self.nft_parser))
 
         for nft in nfts:
             self.database.Add(nft.vars())
 
-        self.database.Save()
+        #self.database.Save()
 
         # update request
-        updated_nfts = self.database.Request()
+        updated_nfts = self.database.Request(**self.filters)
         return updated_nfts
 
 
@@ -47,6 +57,10 @@ class Monitor:
     def get_support(self) -> tuple[bool, str, str]:
         "Check if monitor is valid, then nft page name and then rank support"
         nft_support = self.nft_parser.supported_page
+
+        if not nft_support:
+            return [False, 'None', 'None']
+
         rank_support = self.nft_parser.supported_page.rank_parser.supported_page
 
         nft_page_name = 'None'

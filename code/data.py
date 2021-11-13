@@ -11,41 +11,6 @@ from bs4 import BeautifulSoup
 from db import DataSet, Database
 
 
-class Querry:
-    class Type(enum.Enum):
-        rarity = 'rarity?collection='
-        nfts = 'nft_for_sale?collection='
-        general = 'query_volume_per_collection?collection='
-    
-
-
-    URL = 'https://qzlsklfacc.medianetwork.cloud/'
-
-
-    def __init__(self, querry: Type, collection: str) -> None:
-        """
-        Store important querry data 
-        """
-        self.querry = querry
-        self.collection = collection
-
-
-    def Get_rawdata(self, collection:str=None) -> dict:
-        """
-        Request data from internet 
-        \t returns dictionary
-        """
-        if not collection:
-            collection = self.collection
-        
-        return requests.get(self.url).json()
-
-
-    @property
-    def url(self) -> str:
-        return f'{Querry.URL}{self.querry.value}{self.collection}'
-
-
 
 class Attribute:
     def __init__(self, type_:str) -> None:
@@ -95,8 +60,11 @@ class Parser:
 
         def get_support(self) -> bool: 
             "Check if collection / given url exists"
-            response = requests.get(f'{self.url}')
-            return response.status_code == 200
+            try: 
+                response = requests.get(f'{self.url}')
+                return response.status_code == 200
+            except:
+                return False
 
 
         def export_value(self, id):
@@ -136,7 +104,7 @@ class Parser:
     @property
     def supported_page(self) -> Page:
         "Return supported page if none is, returns None"
-        if not self.support:
+        if self.support is None:
             return None
             
         return self.pages[self.support]
@@ -313,13 +281,19 @@ class NFTParser(Parser):
 
 
 
+def get_last_nft(collection, nft_parser) -> NFT:
+    last_nft_raw = requests.get(f'https://qzlsklfacc.medianetwork.cloud/nft_for_sale?collection={collection}').json()[0]
+    last_nft = nft_parser.parse(last_nft_raw)
+
+    return last_nft
+
+
 def turbo_check(collection, database, nft_parser) -> bool:
     """
     Check if last nft is the sasme as last in database
     \t return True if it has changed
     """
-    last_nft_raw = requests.get(f'https://qzlsklfacc.medianetwork.cloud/nft_for_sale?collection={collection}').json()[0]
-    last_nft = nft_parser.parse(last_nft_raw)
+    last_nft = get_last_nft(collection, nft_parser)
     
     return not database.id_cache[0] == last_nft.id
 

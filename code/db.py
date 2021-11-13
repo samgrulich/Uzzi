@@ -2,6 +2,7 @@ import os
 import time
 import json
 import enum
+import uuid
 
 
 
@@ -128,7 +129,6 @@ class Log(DataSet):
         List of changes
         """
         super().__init__(intiator)
-        self.max_cache_items = 40
 
     
     def Add(self, type:Type, id:int=None, nft_data:dict=None, save_old_data=False) -> None:
@@ -143,30 +143,45 @@ class Log(DataSet):
 
             data['data'] = nft_data
 
-        return super().Add(data, id=id)
+        id_cache = self.id_cache
+        item_cache = self.item_cache
+
+        id_cache.insert(0, id)
+        item_cache.insert(0, data)
+
+        # move old chached items to perma data
+        if len(self.item_cache) >= self.max_cache_items:
+            old_item = item_cache.pop(-1)
+            id_cache.pop(-1) 
+
+            perma_id = str(uuid.uuid4())
+            self.perma[perma_id] = old_item
+
+        self.id_cache = id_cache
+        self.item_cache = item_cache
+        # return super().Add(data, id=id)
 
     
-    def Request(self, id=None, time=None) -> list[dict]:
+    def Request(self, id=None, time_=None) -> list[dict]:
         """
         Request log by id or multiple in given time frame from now(s)
         \t returns list of logs
         """
-        #TODO: implement kwargs querrying
         
         if id:
             return [super().Request(id)]
 
-        if time:
+        if time_:
             filtered = self.item_cache
 
-            max_time = time.time_ns() - (time * 1e9)
+            max_time = time.time_ns() - (time_ * int(1e9))
 
             filtered = filter(
                 lambda log: 
                 log['time'] >= max_time, 
                 filtered)
 
-            return filtered
+            return list(filtered)
 
         return None
 
@@ -180,14 +195,7 @@ class Database(DataSet):
         
         self.id = id
         self.dirpath = dir_path
-        self.log = None
-
-        # if os.path.exists(os.path.join(dir_path, f'{id}_db.json')):
-        #     print('loading db')
-        #     self.Load()
-
-        if not self.log:
-            self.log = Log()
+        self.log = Log()
 
     
     # public
@@ -202,11 +210,9 @@ class Database(DataSet):
 
         if id in self.id_cache or id in self.perma.keys():
             self.Update(data)
-
             return
 
         self.log.Add(Log.Type.add, id)
-
         super().Add(data, id=id)
 
 
@@ -214,7 +220,7 @@ class Database(DataSet):
         """
         Update value in database, `DATA MUST INCLUDE ID` 
         """
-        id = data['id']
+        id = int(data['id'])
 
         success = self._update(id, data)
 
@@ -236,14 +242,14 @@ class Database(DataSet):
 
     def Request(self, time:int=10, **kwagrs) -> list[dict]:
         keys = kwagrs.keys()
-        logs = self.log.Request(time=time)
+        logs = self.log.Request(time_=time)
 
-        if not len(keys) > 0 and logs:
+        if not logs:
             return None 
 
         filtered = []
         for log in logs:
-            id_index = self.id_cache.index(log['id'])
+            id_index = self.log.id_cache.index(log['id'])
             item = self.item_cache[id_index]
             condition = True
 
@@ -268,14 +274,18 @@ class Database(DataSet):
             if condition:
                 filtered.append(item)
 
+        return filtered
+
 
     def Save(self) -> None:
         """
         Save database /w log to file
         """
         DataLoader.Save(self.log, os.path.join(self.dirpath, f'{self.id}_log.json'))
+        log = self.log
         self.log = {}
         DataLoader.Save(self, os.path.join(self.dirpath, f'{self.id}_db.json'))
+        self.log = log
 
         print(f'{os.path.abspath(os.path.join(self.dirpath, f"{self.id}_db.json"))} databse saved')
     
@@ -285,12 +295,10 @@ class Database(DataSet):
         Load database, log files
         """
 
-        log = DataLoader.Load(os.path.join(self.dirpath, f'{id}_log.json'), Log)
-        self = DataLoader.Load(os.path.join(self.dirpath, f'{self.id}_db.json'), Database, self.id, self.dirpath)
+        new_db = DataLoader.Load(os.path.join(self.dirpath, f'{self.id}_db.json'), Database, self.id, self.dirpath)
+        log = DataLoader.Load(os.path.join(self.dirpath, f'{self.id}_log.json'), Log)
 
-        if not log:
-            log = Log()
-
+        self.__dict__.update(new_db.__dict__)
         self.log = log
 
         return self
@@ -313,6 +321,8 @@ class Database(DataSet):
 
             if self.item_cache[id_index] == data:
                 return False
+            else:
+                print('here')
 
             self.item_cache[id_index] = data
 

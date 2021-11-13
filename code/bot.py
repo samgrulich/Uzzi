@@ -1,12 +1,12 @@
 from discord.ext import commands, tasks
-from discord import utils, File
+from discord import utils, Embed
 
 from dotenv import dotenv_values
 
 import os, sys, time
 import random
 
-from code.monitor import Monitor
+from monitor import Monitor
 
 
 
@@ -48,11 +48,14 @@ def create_monitor(collection, **filters) -> str:
 
 
 def delete_monitor(id) -> str:
-    text = f'`{id}` out of bounds (0-{monitors.len()})'
+    text = f'`{id}` out of bounds (0-{len(monitors)})'
 
-    if id in range(monitors.len()):
+    id = int(id)
+    text = len(monitors)
+
+    if id in range(len(monitors)):
         monitors.pop(id)
-        text = f'Monitor at `{len(monitors) - 1}` **removed**'
+        text = f'Monitor at `{id}` **removed**'
 
     return text
 
@@ -63,18 +66,16 @@ async def update(channel):
     for i, monitor in enumerate(monitors):
         nfts = monitor.update()
         if nfts:
-            all_nfts.append(*nfts)
+            all_nfts += nfts
 
     for nft in all_nfts:
+        await channel.send(embed=Embed().set_image(url=nft['img']))
         await channel.send(
-            f'''```
-            {nft['img']}
-
-            Rank: **{nft['rank']}**
-            Name: {nft['name']} | ID: {nft['id']} \n
-            Price: {nft['price']} SOL | Token: {nft['token']}
-            Attributes: {nft['atts']}
-
+            f'''```\
+Rank: **{nft['rank']}**\n\
+Name: {nft['name']} | ID: {nft['id']} \n\
+Price: {nft['price']} SOL | Token: {nft['token']}\n\
+Attributes: {nft['atts']}
             ```''')
 
 #endregion
@@ -88,7 +89,7 @@ async def on_ready():
     print('Bot ready')  
 
     channel = utils.get(client.get_all_channels(), name=CHANNEL)
-    #main_loop.start(channel)
+    main_loop.start(channel)
 
 
 @client.command(help=': Check bot\'s latency')
@@ -142,7 +143,7 @@ async def monitor(ctxt):
 @monitor.command(help=': Create monitor', aliases=['c'])
 async def create(ctxt, collection, *args):
     kwargs = parse_kwargs(args)
-    text = create_monitor(collection, kwargs)
+    text = create_monitor(collection, **kwargs)
 
     await ctxt.send(text)
 
@@ -150,7 +151,7 @@ async def create(ctxt, collection, *args):
 @monitor.command(help=''': Remove monitor''', aliases=['r', 'd'])
 async def delete(ctxt, id):
     text = delete_monitor(id)
-    ctxt.send(text)
+    await ctxt.send(text)
 
 
 @tasks.loop(seconds=int(MAINLOOP_TIME))
