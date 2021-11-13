@@ -1,104 +1,68 @@
 import time
 
-from code.database import DataBase
-from code.data import NFTData, Comparator
+from code.data import Database, NFTParser, turbo_check
 
 
 
 class Monitor:
-    def __init__(self, collection:str, database:DataBase=DataBase(), **kwargs) -> None:
-        keys = kwargs.keys()
-
-        time_now = 5e12 #5e9 # - 5sec
-        e_type = [0, 1]
-        price = 100
-
-        if 'time' in keys:
-            time = kwargs.pop('time')
-        
-        if 'e_type' in keys:
-            e_type = kwargs.pop('e_type')
-
-        if 'price' in keys:
-            price = kwargs.pop('price')
-        
-        self.filters = kwargs
-        self.time = time_now
-        self.e_type = e_type
-        self.price = price
-        self.database = database
+    def __init__(self, collection:str, **filters) -> None:
         self.collection = collection
-        self.log = database.log.data
+        self.filters = filters
+
+        self.database = Database(collection, './DBs/').Load()
+        self.nft_parser = NFTParser(collection)
+
+        valid, nft_page, rank_page = self.get_support()
+        self.valid = valid
+        self.nft_page = nft_page
+        self.rank_page = rank_page
 
 
-    def update(self, filter=True) -> dict:
-        data = NFTData(self.collection)
-        nfts = data.parse_rarities()
+    def update(self) -> list[dict]:
+        "Add new nfts on page to databse, returns added nfts"
+        changed = turbo_check(self.collection, self.database, self.nft_parser)
 
-        Comparator(self.database, nfts, 'add_new')
-        self.database.save()
-
-        if filter:
-            result = self.filter()
-            return result
-        return None
-
-
-    def filter(self) -> dict:
-        time_now = time.time_ns()
-        min_time = time_now - int(self.time)
-
-        index = -1
-        for i, log_time in enumerate(self.log.keys()):
-            if int(log_time) <= min_time:
-                index = i - 1
-                break
-
-        if index == -1:
-            print('index -1')
+        if not changed:
             return None
 
-        log_values = list(self.log.values())[:index+1]
-        indicies = []
-        for slice_i, log_slice in enumerate(log_values):
-            for nft_i, nft in enumerate(log_slice):
-                if nft['e_type'] == 0 or 1:
-                    if nft['data']['price'] <= self.price:
-                        indicies.append([slice_i, nft_i])
+        # database update
+        nfts = self.nft_parser.parse_all()
+        nfts.reverse()
 
-        if not len(indicies):
-            print('not enough indicies')
-            return None
+        for nft in nfts:
+            self.database.Add(nft.vars())
 
-        for index in indicies:
-            attributes = log_values[index[0]][index[1]]['data']['attributes']
-            attributes_keys = attributes.keys()
+        self.database.Save()
 
-            result = True
-            for filter_key, filter_val in self.filters.items():
-                if filter_key in attributes_keys:
-                    if not list(attributes[filter_key].values())[0] <= filter_val:
-                        result = False
-                        break
+        # update request
+        updated_nfts = self.database.Request()
+        return updated_nfts
 
-            if not result:
-                indicies.remove(index)
 
-        # recreate array from indicies
-        log_keys = list(self.log.keys())[:index[0] + 1]
-        result = {}
-        for index in indicies:
-            #index = index - 1
-            key = log_keys[index[0]]
+    def set_filters(self, **filters) -> None:
+        "Cahnge nft filters"
+        self.filters = filters
 
-            if not key in result.keys():
-                result[key] = []
-            result[key].append(log_values[index[0]][index[1]])
 
-        return result
+    def get_support(self) -> tuple[bool, str, str]:
+        "Check if monitor is valid, then nft page name and then rank support"
+        nft_support = self.nft_parser.supported_page
+        rank_support = self.nft_parser.supported_page.rank_parser.supported_page
 
-monitor = Monitor('cyberpharmacist', Background=10)
-result = monitor.filter()
+        nft_page_name = 'None'
+        rank_page_name = 'None'
 
-# print(result)
-        
+        # validity of this monitor
+        valid = nft_support
+
+        if nft_support:
+            nft_page_name = nft_support.id
+
+        if rank_support:
+            rank_page_name = rank_support.id
+
+        return (valid, nft_page_name, rank_page_name)
+
+
+
+# monitor = Monitor('cyberpharmacist', Background=10)

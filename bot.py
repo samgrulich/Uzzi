@@ -4,10 +4,9 @@ from discord import utils, File
 from dotenv import dotenv_values
 
 import os, sys, time
+import random
 
 from code.monitor import Monitor
-from code.data import CollectionData 
-from code.__init__ import PROJECT_PATH
 
 
 
@@ -18,7 +17,6 @@ MAINLOOP_TIME = config['mainloop_time']
 
 client = commands.Bot(command_prefix='.')
 monitors = []
-images = {}
 
 
 
@@ -37,77 +35,48 @@ def parse_kwargs(args) -> dict:
     return kwargs
 
 
-async def create_monitor(ctxt, collection, **filters):
+def create_monitor(collection, **filters) -> str:
     monitor = Monitor(collection, **filters)
-    monitors.append(monitor)
-
-    await ctxt.send(f'Monitor wiht id: `{len(monitors) - 1}` **created**')
-
-
-async def delete_monitor(ctxt, id):
-    if not id in range(monitors.len()):
-        await ctxt.send(f'ID: `{id}` is out of bounds (0-{monitors.len()})')
-        return
     
-    monitors.pop(id)
-    await ctxt.send(f'Monitor wiht id: `{len(monitors) - 1}` **removed**')
+    text = f'{collection} is not valid'
+
+    if monitor.valid:
+        monitors.append(monitor)
+        text = f'Monitor **created** at `{len(monitors) - 1}`'
+
+    return text
 
 
-async def load_images():
-    for dir in os.listdir(f'{PROJECT_PATH}\\Graphs\\'):
-        for img in os.listdir(f'{PROJECT_PATH}\\Graphs\\{dir}'):
-            if not dir in images.keys():
-                images[dir] = []
-            
-            image = None
-            with open(f'{PROJECT_PATH}\\Graphs\\{dir}\\{img}', 'rb') as f:
-                image = File(f)
+def delete_monitor(id) -> str:
+    text = f'`{id}` out of bounds (0-{monitors.len()})'
 
-            images[dir].append(image)
+    if id in range(monitors.len()):
+        monitors.pop(id)
+        text = f'Monitor at `{len(monitors) - 1}` **removed**'
 
-
-# async def show_graph(ctxt, collection, *args):
-#     rarities = RarityGetter(collection)
-
-#     attribs = args
-
-#     if 'all' in args:
-#         attribs = ['Background', 'Brain', 'Plant', 'Body', 'Neck', 'Arms', 'Face', 'Eyes', 'Headwear', 'Mask']
-
-#     for attrib in range(len(attribs)):
-#         filepath = f'{PROJECT_PATH}\\Graphs\\{collection}\\{attrib}.png'
-
-#         # async with open(filepath, 'rb') as f:
-#         #     picture = File(f)
-#         #     await ctxt.send(file=picture)
-
-#         await ctxt.send(file=images[collection][attrib])
-
-#         rarities.plot_attribs(attrib, 'save', 'hide')
-
-#         # with open(f'{PROJECT_PATH}\\Graphs\\{collection}\\{attrib}.png', 'r') as f:
-#         #     await ctxt.send(file=File(f, 'new_filename.png'))
+    return text
 
 
 async def update(channel):
-    filtered_data = {}
+    all_nfts = []
 
     for i, monitor in enumerate(monitors):
-        filtered = monitor.update()
-        if filtered:
-            filtered_data[i] = filtered
+        nfts = monitor.update()
+        if nfts:
+            all_nfts.append(*nfts)
 
-    for key, value in filtered_data.items():
-        await channel.send(f'Monitor {key} found this:')
-        
-        for time in value.keys():
-            await channel.send(f'`{time}`') 
+    for nft in all_nfts:
+        await channel.send(
+            f'''```
+            {nft['img']}
 
-            for nft in value[time]:
-                nft_data = nft['data']
-                await channel.send(f'```{nft_data}```')
+            Rank: **{nft['rank']}**
+            Name: {nft['name']} | ID: {nft['id']} \n
+            Price: {nft['price']} SOL | Token: {nft['token']}
+            Attributes: {nft['atts']}
 
-        print(value)
+            ```''')
+
 #endregion
 
 
@@ -118,31 +87,70 @@ async def update(channel):
 async def on_ready():
     print('Bot ready')  
 
-    # await load_images()
-
     channel = utils.get(client.get_all_channels(), name=CHANNEL)
-    main_loop.start(channel)
+    #main_loop.start(channel)
 
 
-@client.command(help=': check bot\'s latency')
+@client.command(help=': Check bot\'s latency')
 async def ping(ctxt):
-    await ctxt.send(f'{int(client.latency * 1e3)}ms')  
+    ping_choices = [
+        'Pong',
+        'Whabam',
+        'I am speed',
+        'Bang'
+    ]
+
+    await ctxt.send(f'{random.choice(ping_choices)}! {int(client.latency * 1e3)}ms')  
 
 
-@client.command(help=''': Create monitor''', aliases=['c'])
-async def create(ctxt, collection, *args,):
+@client.command(help=': Bot will repeat your text')
+async def say(ctxt, text):
+    choice = random.randrange(0, 100)
+
+    if choice < 5:
+        text = 'Exactly!'
+
+    if 'gay' in text.lower():
+        text = 'True'
+
+    await ctxt.send(text)
+
+
+@client.command(help=': List of all monitors', aliases=['a, al, am'])
+async def all(ctxt):
+    choice = random.randrange(0, 100)
+
+    if choice < 5:
+        await ctxt.send('No')
+        return
+    
+    if len(monitors) == 0:
+        await ctxt.send('No monitors!')
+        return
+
+    for i, monitor in enumerate(monitors):
+        status = 'Active' if monitor.valid else 'Not supported'
+        await ctxt.send(f'`Monitor at {i}, coll: {monitor.collection}, status: {status}`')
+
+
+@client.group(pass_context=True, aliases=['m'])
+async def monitor(ctxt):
+    if ctxt.invoked_subcommand is None:
+        await ctxt.send('Invalid sub command...  😕')
+
+
+@monitor.command(help=': Create monitor', aliases=['c'])
+async def create(ctxt, collection, *args):
     kwargs = parse_kwargs(args)
-    await create_monitor(ctxt, collection, **kwargs)
+    text = create_monitor(collection, kwargs)
+
+    await ctxt.send(text)
 
 
-@client.command(help=''': Remove monitor''', aliases=['r', 'd'])
+@monitor.command(help=''': Remove monitor''', aliases=['r', 'd'])
 async def delete(ctxt, id):
-    await delete_monitor(ctxt, int(id))
-
-
-@client.command()
-async def show_graph(ctxt, collection, *args):
-    await show_graph(ctxt, collection, *args)
+    text = delete_monitor(id)
+    ctxt.send(text)
 
 
 @tasks.loop(seconds=int(MAINLOOP_TIME))

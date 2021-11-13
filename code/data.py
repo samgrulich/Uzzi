@@ -11,7 +11,6 @@ from bs4 import BeautifulSoup
 from db import DataSet, Database
 
 
-
 class Querry:
     class Type(enum.Enum):
         rarity = 'rarity?collection='
@@ -62,6 +61,8 @@ class Attribute:
 
     def Rarity(self, value: str) -> float:
         "Get rarity of one value"
+        if value == 'None':
+            return 0.0
         return self.values[value]
 
 
@@ -72,6 +73,7 @@ class NFT:
         self.id = id
         self.name = name
         self.price = price
+        self.rank = rank
         self.img = image
         self.token = token
         self.atts = attributes
@@ -88,6 +90,7 @@ class Parser:
         def __init__(self, url, collection) -> None:
             self.url = f'{url}/{collection}'
             self.support = self.get_support()
+            self.id = 'None'
 
 
         def get_support(self) -> bool: 
@@ -128,8 +131,17 @@ class Parser:
 
         page = self.pages[self.support]
         return page.export_value(id)
+    
 
+    @property
+    def supported_page(self) -> Page:
+        "Return supported page if none is, returns None"
+        if not self.support:
+            return None
+            
+        return self.pages[self.support]
 
+    
 
 class RankParser(Parser):
     # Page functions
@@ -137,6 +149,7 @@ class RankParser(Parser):
 
     class Howrare(Parser.Page):
         def __init__(self, collection) -> None:
+            self.id = 'Howrare'
             super().__init__('https://howrare.is', collection)
 
 
@@ -159,6 +172,7 @@ class RankParser(Parser):
 
     class Moonrank(Parser.Page):
         def __init__(self, collection) -> None:
+            self.id = 'Moonrank'
             super().__init__('https://moonrank.app/collection', collection)
 
 
@@ -198,6 +212,7 @@ class NFTParser(Parser):
     class Solanart(Parser.Page):
         def __init__(self, collection) -> None:
             url = 'https://qzlsklfacc.medianetwork.cloud'
+            self.id = 'Solanart'
 
             self.url = f'{url}/nft_for_sale?collection={collection}'
             self.rarity_url = f'{url}/rarity?collection={collection}'
@@ -215,7 +230,7 @@ class NFTParser(Parser):
             return nft
 
 
-        def export_nfts(self) -> list(NFT):
+        def export_nfts(self) -> list[NFT]:
             "Export all nfts in raw data to list of polished nft objects"
             nfts_raw = requests.get(self.url).json()
             nfts = []
@@ -252,7 +267,7 @@ class NFTParser(Parser):
             "Extract attributes from raw data and add meta data to them"
             atts = atts_str.split(',')
             parsed_atts = {}
-            att_rarities = self._parse_atts()
+            att_rarities = self.atts
 
             for att in atts:
                 type_, data_ = att.replace(' ', '').split(':')
@@ -268,10 +283,11 @@ class NFTParser(Parser):
 
     class Magiceden(Parser.Page):
         def __init__(self, collection) -> None:
+            self.id = 'Magiceden'
             super().__init__('https://magiceden.io/marketplace', collection)
 
 
-        def export_nfts(self) -> list(NFT):
+        def export_nfts(self) -> list[NFT]:
             pass
 
     #endregion
@@ -286,22 +302,44 @@ class NFTParser(Parser):
         if self.support == None:
             return None
 
-        self.pages[self.support].export_nft(nft)
+        return self.pages[self.support].export_nft(nft)
 
 
-    def parse_all(self) -> list(NFT):
+    def parse_all(self) -> list[NFT]:
         if self.support == None:
             return None
 
-        self.pages[self.support].export_nfts()
+        return self.pages[self.support].export_nfts()
+
+
+
+def turbo_check(collection, database, nft_parser) -> bool:
+    """
+    Check if last nft is the sasme as last in database
+    \t return True if it has changed
+    """
+    last_nft_raw = requests.get(f'https://qzlsklfacc.medianetwork.cloud/nft_for_sale?collection={collection}').json()[0]
+    last_nft = nft_parser.parse(last_nft_raw)
+    
+    return not database.id_cache[0] == last_nft.id
 
 
 
 if __name__ == '__main__':
-    nfts = load_nfts('cyberpharmacist')
-    database = Database(0, './DBs/')
+    database = Database(0, './DBs/').Load()
+    nft_parser = NFTParser('cyberpharmacist')
 
-    for nft in nfts:
-        database.Add(nft)
+    condition = turbo_check('cyberpharmacist', database, nft_parser)
+    
+    if not condition:
+        # database update
+        nfts = nft_parser.parse_all()
+        nfts.reverse()
 
-    database.Save()
+        for nft in nfts:
+            database.Add(nft.vars())
+
+        database.Save()
+
+        # update request
+        database.Request()

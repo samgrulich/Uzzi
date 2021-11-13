@@ -104,7 +104,7 @@ class DataLoader:
 
     
     @staticmethod
-    def Load(path:str, type_:type) -> DataSet:
+    def Load(path:str, type_:type, *args) -> object:
         """
         Load Data form file
         \t returns None if action was unsuccessful 
@@ -113,7 +113,7 @@ class DataLoader:
             return None
 
         with open(path, 'r', encoding='utf-8') as f:
-            return DataSet(json.load(f))
+            return type_(*args, json.load(f))
 
 
 
@@ -182,8 +182,9 @@ class Database(DataSet):
         self.dirpath = dir_path
         self.log = None
 
-        if os.path.exists(os.path.join(dir_path, f'{id}_db.json')):
-            self.Load()
+        # if os.path.exists(os.path.join(dir_path, f'{id}_db.json')):
+        #     print('loading db')
+        #     self.Load()
 
         if not self.log:
             self.log = Log()
@@ -260,13 +261,12 @@ class Database(DataSet):
             if kwagrs:
                 item_attributes = item['attributes']
                 for att_type, att_rarity in kwagrs.items():
-                    if att_type in item_attributes.keys() and next(iter(item_attributes.values())) > att_rarity:
+                    if att_type in item_attributes.keys() and next(iter(item_attributes.values())) < att_rarity:
                         condition = False
                         continue
 
             if condition:
                 filtered.append(item)
-
 
 
     def Save(self) -> None:
@@ -280,18 +280,20 @@ class Database(DataSet):
         print(f'{os.path.abspath(os.path.join(self.dirpath, f"{self.id}_db.json"))} databse saved')
     
     
-    def Load(self) -> None:
+    def Load(self):
         """
         Load database, log files
         """
 
         log = DataLoader.Load(os.path.join(self.dirpath, f'{id}_log.json'), Log)
-        self = DataLoader.Load(os.path.join(self.dirpath, f'{self.id}_db.json'), Database)
+        self = DataLoader.Load(os.path.join(self.dirpath, f'{self.id}_db.json'), Database, self.id, self.dirpath)
 
         if not log:
             log = Log()
 
         self.log = log
+
+        return self
 
     #endregion
     

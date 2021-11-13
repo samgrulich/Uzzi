@@ -16,6 +16,8 @@ Memes
 
 TODO:
 {
+  Super Quick checking
+
   Rankig:
     first (manual)
       -Table
