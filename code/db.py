@@ -105,7 +105,7 @@ class DataLoader:
 
     
     @staticmethod
-    def Load(path:str, type_:type, *args) -> object:
+    def Load(path:str, out_data:object) -> object:
         """
         Load Data form file
         \t returns None if action was unsuccessful 
@@ -114,7 +114,7 @@ class DataLoader:
             return None
 
         with open(path, 'r', encoding='utf-8') as f:
-            return type_(*args, json.load(f))
+            return out_data.__dict__.update(json.load(f))
 
 
 

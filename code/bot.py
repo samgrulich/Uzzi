@@ -40,9 +40,9 @@ def create_monitor(collection, **filters) -> str:
     
     text = f'{collection} is not valid'
 
-    if monitor.valid:
-        monitors.append(monitor)
-        text = f'Monitor **created** at `{len(monitors) - 1}`'
+    # if monitor.valid:
+    monitors.append(monitor)
+    text = f'Monitor **created** at `{len(monitors) - 1}`'
 
     return text
 
@@ -69,14 +69,20 @@ async def update(channel):
             all_nfts += nfts
 
     for nft in all_nfts:
+        nft = nft.vars()
+
         await channel.send(embed=Embed().set_image(url=nft['img']))
-        await channel.send(
-            f'''```\
-Rank: **{nft['rank']}**\n\
+
+        info_string = f'''\
+Rank: **{nft['rank']}** ({monitor.collection.rank_pages[monitor.collection.rank_support].id})\n\
 Name: {nft['name']} | ID: {nft['id']} \n\
 Price: {nft['price']} SOL | Token: {nft['token']}\n\
-Attributes: {nft['atts']}
-            ```''')
+Attributes: \n'''
+
+        for att in nft['atts'].split(','):
+            info_string += f' \t - {att}, \n'
+
+        await channel.send(info_string)
 
 #endregion
 
@@ -89,6 +95,10 @@ async def on_ready():
     print('Bot ready')  
 
     channel = utils.get(client.get_all_channels(), name=CHANNEL)
+
+    seconds = int(time.time()) % 10
+    time.sleep(seconds)
+
     main_loop.start(channel)
 
 
@@ -130,8 +140,9 @@ async def all(ctxt):
         return
 
     for i, monitor in enumerate(monitors):
-        status = 'Active' if monitor.valid else 'Not supported'
-        await ctxt.send(f'`Monitor at {i}, coll: {monitor.collection}, status: {status}`')
+        # status = 'Active' if monitor.valid else 'Not supported'
+        status = 'Active'
+        await ctxt.send(f'`Monitor at {i}, coll: {monitor.collection.collection}, status: {status}`')
 
 
 @client.group(pass_context=True, aliases=['m'])
@@ -142,6 +153,8 @@ async def monitor(ctxt):
 
 @monitor.command(help=': Create monitor', aliases=['c'])
 async def create(ctxt, collection, *args):
+    await ctxt.send('On it!')
+
     kwargs = parse_kwargs(args)
     text = create_monitor(collection, **kwargs)
 
@@ -151,6 +164,21 @@ async def create(ctxt, collection, *args):
 @monitor.command(help=''': Remove monitor''', aliases=['r', 'd'])
 async def delete(ctxt, id):
     text = delete_monitor(id)
+    await ctxt.send(text)
+
+
+@monitor.command(help=''': Change filters''', aliases=['change'])
+async def set(ctxt, id, *args):
+    kwargs = parse_kwargs(args)
+    
+    id = int(id)
+
+    monitors[id].set_filters(**kwargs)
+    
+    text = 'New filters are: '
+    for filter in monitors[id].filters:
+        text += f'{filter}, '
+
     await ctxt.send(text)
 
 

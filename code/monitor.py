@@ -1,52 +1,37 @@
 import os
 
-from data import Database, NFTParser, turbo_check, get_last_nft
+# from data import Database, NFTParser, turbo_check, get_last_nft
+from solanart_funcs import Collection, get_nfts, SolanartSnapshot, parse_snapshot, filter_snapshot
 
 
 
 class Monitor:
     def __init__(self, collection:str, **filters) -> None:
-        self.collection = collection
+        self.collection = Collection(collection)
+        
+        old_nfts = get_nfts(self.collection)
+        self.old_snap = SolanartSnapshot(old_nfts)
+
         self.filters = filters
 
 
-        dirpath = './DBs/'
-        database = Database(collection, dirpath)
-
-        if os.path.exists(os.path.join(dirpath, f'{collection}_db.json')):
-            database.Load()
-            
-        self.database = database
-        self.nft_parser = NFTParser(collection)
-
-
-        valid, nft_page, rank_page = self.get_support()
-        self.valid = valid
-        self.nft_page = nft_page
-        self.rank_page = rank_page
-
-
     def update(self) -> list[dict]:
-        "Add new nfts on page to databse, returns added nfts"
-        if len(self.database.id_cache): 
-            changed = turbo_check(self.collection, self.database, self.nft_parser)
+        new_nfts = get_nfts(self.collection)
+        new_snap = SolanartSnapshot(new_nfts) 
 
-            if not changed:
-                return None
+        self.old_snap.list.pop(0)
+        self.old_snap.ids.pop(0)
 
-        # database update
-        nfts = self.nft_parser.parse_all()
-        nfts.reverse()
-        # nfts = self.nft_parser.parse(get_last_nft(self.collection, self.nft_parser))
+        self.old_snap.list.pop(-1)
+        self.old_snap.ids.pop(-1)
 
-        for nft in nfts:
-            self.database.Add(nft.vars())
+        result = new_snap - self.old_snap 
+        parsed_result = parse_snapshot(result, self.collection)
+        filtered_result = filter_snapshot(parsed_result, **self.filters)
 
-        #self.database.Save()
+        self.old_snap = new_snap
 
-        # update request
-        updated_nfts = self.database.Request(**self.filters)
-        return updated_nfts
+        return filtered_result
 
 
     def set_filters(self, **filters) -> None:
