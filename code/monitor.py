@@ -1,33 +1,34 @@
 import os
 
 # from data import Database, NFTParser, turbo_check, get_last_nft
-from solanart_funcs import Collection, get_nfts, SolanartSnapshot, parse_snapshot, filter_snapshot
-
+# from solanart_funcs import Collection, get_nfts, SolanartSnapshot, parse_snapshot, filter_snapshot
+import solanart
+from united import objects
 
 
 class Monitor:
     def __init__(self, collection:str, **filters) -> None:
-        self.collection = Collection(collection)
+        self.collection = solanart.SolCollection(collection)
         
-        old_nfts = get_nfts(self.collection)
-        self.old_snap = SolanartSnapshot(old_nfts)
+        old_nfts = solanart.get_nfts(self.collection)
+        self.old_snap = objects.Snapshot(old_nfts)
 
         self.filters = filters
 
 
     def update(self) -> list[dict]:
-        new_nfts = get_nfts(self.collection)
-        new_snap = SolanartSnapshot(new_nfts) 
+        new_nfts = solanart.get_nfts(self.collection)
+        new_snap = objects.Snapshot(new_nfts) 
 
-        self.old_snap.list.pop(0)
-        self.old_snap.ids.pop(0)
+        # self.old_snap.list.pop(0)
+        # self.old_snap.ids.pop(0)
 
-        self.old_snap.list.pop(-1)
-        self.old_snap.ids.pop(-1)
+        # self.old_snap.list.pop(-1)
+        # self.old_snap.ids.pop(-1)
 
         result = new_snap - self.old_snap 
-        parsed_result = parse_snapshot(result, self.collection)
-        filtered_result = filter_snapshot(parsed_result, **self.filters)
+        parsed_result = solanart.parse_snapshot(result, self.collection)
+        filtered_result = solanart.filter_snapshot(parsed_result, **self.filters)
 
         self.old_snap = new_snap
 

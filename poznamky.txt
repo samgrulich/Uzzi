@@ -16,11 +16,32 @@ Memes
 
 TODO:
 {
-  Super Quick checking
+  Optimizazion
+    -optimize code
+    -add checks
+      -all of them :D
+    -when requesting check response
+
+  Dis bot
+    -add loading bar 
 
   Rankig:
     first (manual)
       -Table
+    auto
+      -Page api
+
+  Formatting
+    -add url pages to result
+
+  Add crossplatform functionality 
+}
+
+Commit loading:
+{
+  Regrouped functions into files,
+  Using Atoformat now, 
+  removed .env (oops)
 }
 
 https://api-mainnet.magiceden.io/rpc/getListedNFTsByQuery?q=%7B%22%24match%22%3A%7B%22collectionSymbol%22%3A%22thugbirdz%22%7D%2C%22%24sort%22%3A%7B%22createdAt%22%3A-1%7D%2C%22%24skip%22%3A0%2C%22%24limit%22%3A20%7D
