@@ -1,12 +1,55 @@
-"Group of universal object (everything extracted from internet should be parsed into these)"
+"""
+Group of universal classes/interfaces
+-------------------------------------
+
+All classes in this module are designed to behave as interfaces for 
+easier integration of multipage support, you can modify them but
+you can use them as they are
+
+Classes:
+--------
+    Class - should be used as it is \n
+    Half - can be used as it is, but you can modify it \n
+    Interface - use it as base for your custom class \n
+
+* NFT \n
+    Class, stores data of your nft in cross-page/universal state
+* Snapshot \n
+    Class, list of downloaded nfts
+* Page \n
+    Interface, stores data about your website
+* PageTuple \n
+    Half, for grouping simillar pages together
+* Collection \n
+    Interface, stores data about collection, access to some handy functions
+
+"""
 
 import requests
 
 
 class NFT:
-    "NFT class for unifying nft objects"
+    "NFT class for easier cross platforming"
 
     def __init__(self, id: str, name: str, token: str, price: float, image: str, rank: int, attributes: str) -> None:
+        """
+        Parameters
+        ----------
+        id : str
+            Id of nft 
+        name : str
+            Name of nft
+        price : float
+            Price/Last-Sale of nft
+        image : str
+            URL of nft image
+        rank : int
+            Rank of nft, ussually won't come with raw nft data
+        attributes : str
+            String dictionary of nft's attributes (ex. 'Background: Red, ..., Hat: cylinder')
+        """
+        # TODO: atts aren't so much united
+
         self.id = id
         self.name = name
         self.price = price
@@ -18,30 +61,98 @@ class NFT:
     # public
 
     def vars(self) -> dict:
-        "Get dictionary of variables"
+        """
+        Get dictionary of variables
+
+        Same as using 'vars(this_obj)', parses vars of this object to string
+
+        Returns
+        -------
+        dict
+            This object's vars parsed into dictionary
+        """
         return vars(self)
 
 
 class Page:
-    def __init__(self, collection: str, url: str, id: str = 'None') -> None:
-        self.url = f'{url}/{collection}'
+    """
+    Class used to store and change data from Website
+
+    Attributes
+    ----------
+    url : str
+        Url of website + collection `doesn't` have '/' at the end
+    support : bool
+        Is website supported or not (ex. True=Supported)
+    id : str
+        Id of website (ex. Google)
+    valid : bool
+        Same as support, with additional None check
+
+    Methods
+    -------
+    get_support() -> bool:
+        Check support
+
+    export(nft_data) -> ???:
+        This is the most customized method, this is called for 
+        extraction data of nft_data from website 
+
+    """
+
+    def __init__(self, collection_id: str, url: str, id: str = 'None') -> None:
+        """
+        Parameters
+        ----------
+        collection_id : str
+            Id of collection page will use
+        url : str
+            URL of website page will use
+        id : str
+            ID of page (ex. Google)
+        """
+        # BUG: is .valid needed??
+
+        self.url = f'{url}/{collection_id}'
         self.support = self.get_support()
         self.id = id
 
     def get_support(self) -> bool:
-        "Check if collection / given url exists"
+        """
+        Check if collection / given url exists
+
+        Returns
+        -------
+        bool
+            is page aviable
+        """
+
+        # TODO: make it request again
         try:
             response = requests.get(f'{self.url}')
             return response.status_code == 200
         except:
             return False
 
-    def export(self, data):
+    def export(self, **nft_data):
+        """
+        Export data of nft from web
+
+        Returns
+        -------
+        """
         return None
 
     @property
     def valid(self) -> bool:
-        "Check validity of page"
+        """
+        Check validity of page with additional None check
+
+        Returns
+        -------
+        bool
+            is page supported
+        """
         if self.support is None:
             return False
 
@@ -49,12 +160,52 @@ class Page:
 
 
 class PageTuple:
-    def __init__(self, page_types: list[type], collection: str) -> None:
-        self.pages = [page_type(collection) for page_type in page_types]
+    """
+    Class used for easier manipulation with multiple pages
+
+    Attributes
+    ----------
+    pages : list[Page]
+        List of pages the tuple will be using
+    supported_index : int
+        Index of supported page, can be None
+    supported_page : Page
+        Get object of supported Page, `None` if not valid
+    valid : bool
+        Validity of this tuple, if there's atleast one page supported
+
+    Methods
+    -------
+    get_support() -> int:
+        returns index of supported page, `None` if none is valid
+    export(nft_data) -> ???:
+        calls export of supported page
+
+
+    """
+
+    def __init__(self, page_types: list[type], collection_id: str) -> None:
+        """
+        Arguments
+        ---------
+        page_types : list[type]
+            list of pages you will be using
+        collection_id : str
+            id of collection you want to use
+        """
+
+        self.pages = [page_type(collection_id) for page_type in page_types]
         self.supported_index = self.get_support()
 
     def get_support(self) -> int:
-        "Get index of first supported page, if not supported returns `None`"
+        """
+        Get index of first supported page
+
+        Returns
+        -------
+        int
+            index of supported page,`None` if not supported
+        """
         support = None
 
         for i, page in enumerate(self.pages):
@@ -64,21 +215,32 @@ class PageTuple:
 
         return support
 
-    def export(self, data):
-        "Export data from supported page"
+    def export(self, **nft_data):
+        """
+        Export data from supported page
+
+        Arguments
+        ---------
+        nft_data
+            nft_data needed for page to extract desired data
+
+        Returns
+        -------
+        ???
+            That depedns on the page (object)
+        """
         if not self.valid:
             return None
 
-        return self.supported_page.export(data)
+        return self.supported_page.export(**nft_data)
 
     @property
     def supported_page(self) -> Page:
         "Get supported page as type Page, returns `None` if not valid"
-        if self.valid:
+        if not self.valid:
             return None
 
-        self.pages[self.supported_page]
-        pass
+        return self.pages[self.supported_index]
 
     @property
     def valid(self) -> bool:

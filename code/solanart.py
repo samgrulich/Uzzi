@@ -22,7 +22,7 @@ class Solanart(objects.Page):
 
 class RankTuple(objects.PageTuple):
     def export(self, nft_id: str or int, nft_name: str) -> int:
-        return super().export(nft_id, nft_name)
+        return super().export(id=nft_name)
 
 
 class Howrare(objects.Page):
@@ -61,12 +61,12 @@ class Howrare(objects.Page):
 
         return result_map
 
-    def export(self, nft_id: str or int, nft_name: str) -> int:
+    def export(self, id: str or int) -> int:
         "Export rank of nft with id, `None` mostly if not supported"
         if not self.valid:
             return None
 
-        name = nft_name.replace(' ', '')
+        name = id.replace(' ', '')
 
         if not name in self.map.keys():
             # TODO: check other pages
@@ -97,24 +97,25 @@ class Moonrank(objects.Page):
 
 
 class SolCollection(objects.Collection):
-    def __init__(self, url: str, collection: str) -> None:
+    def __init__(self, collection_id: str) -> None:
         "url is string before collection, collection means collection name"
         resposne = requests.get(
-            f'https://qzlsklfacc.medianetwork.cloud/get_collection_url?url={collection}')
+            f'https://qzlsklfacc.medianetwork.cloud/get_collection_url?url={collection_id}')
 
         if resposne.status_code != 200:
-            raise Exception(f'Could not request {collection}')
+            raise Exception(f'Could not request {collection_id}')
 
         data = resposne.json()[0]
         name = data['name'].replace(' ', '').lower()
 
-        collection_tuple = objects.PageTuple([Solanart], collection)
+        collection_tuple = objects.PageTuple([Solanart], collection_id)
         rank_tuple = RankTuple([
             Howrare
         ], name)
-        rarity_tuple = objects.PageTuple(None, None)
+        rarity_tuple = objects.PageTuple([], '')
 
-        super().__init__(url, name, collection_tuple, rank_tuple, rarity_tuple)
+        self.name = name
+        super().__init__('https://qzlsklfacc.medianetwork.cloud/nft_for_sale?collection=', collection_id, collection_tuple, rank_tuple, rarity_tuple)
 
     def parse_nft(self, raw_nft: dict) -> objects.NFT:
         rank = self.rank_tuple.export(raw_nft['id'], raw_nft['name'])
@@ -124,21 +125,25 @@ class SolCollection(objects.Collection):
         return nft
 
 
-def get_nfts(collection_id:str) -> list[dict]:
+def get_nfts(collection_id: str) -> list[dict]:
     "Get raw data nfts"
     url = f'https://qzlsklfacc.medianetwork.cloud/nft_for_sale?collection={collection_id}'
-    
+
     response = requests.get(url)
 
     if response.status_code != 200:
+        if response.status_code == 404:
+            return None
+        # BUG: here is infinite recursion
         time.sleep(5)
         return get_nfts(collection_id)
 
     nfts = requests.get(url).json()
-    
+
     return nfts
 
-def parse_snapshot(snapshot:objects.Snapshot, collection:SolCollection) -> list[objects.NFT]:
+
+def parse_snapshot(snapshot: objects.Snapshot, collection: SolCollection) -> list[objects.NFT]:
     "Create nft object list from raw nft snapshot"
     nfts = []
 
@@ -148,23 +153,20 @@ def parse_snapshot(snapshot:objects.Snapshot, collection:SolCollection) -> list[
 
     return nfts
 
-def filter_snapshot(snapshot:objects.Snapshot or list[objects.NFT], **filters) -> list[objects.NFT]:
+
+def filter_snapshot(snapshot: objects.Snapshot or list[objects.NFT], **filters) -> list[objects.NFT]:
     "Filter snapshot"
     filtered = []
 
     list_ = snapshot if type(snapshot) is list else snapshot.list
 
     for nft in list_:
-        condition = True
-
         if 'price' in filters.keys() and nft.price > float(filters['price']):
-            condition = False
             continue
 
         if 'rank' in filters.keys() and nft.rank > int(filters['rank']):
-            condition = False
             continue
-        
+
         # attribute filtering
         # if filters:
         #     item_attributes = nft.attributes
@@ -173,7 +175,6 @@ def filter_snapshot(snapshot:objects.Snapshot or list[objects.NFT], **filters) -
         #             condition = False
         #             continue
 
-        if condition:
-            filtered.append(nft)
+        filtered.append(nft)
 
     return filtered
