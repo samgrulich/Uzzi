@@ -3,11 +3,12 @@ from discord import utils, Embed
 
 from dotenv import dotenv_values
 
-import os, sys, time
+import os
+import sys
+import time
 import random
 
 from monitor import Monitor
-
 
 
 config = dotenv_values(sys.path[0] + '\\.env')
@@ -19,12 +20,11 @@ client = commands.Bot(command_prefix='.')
 monitors = []
 
 
-
 # Functions
-#region
+# region
 def parse_kwargs(args) -> dict:
     kwargs = {}
-    
+
     for arg in args:
         string = str(arg)
 
@@ -37,7 +37,7 @@ def parse_kwargs(args) -> dict:
 
 def create_monitor(collection, **filters) -> str:
     monitor = Monitor(collection, **filters)
-    
+
     text = f'{collection} is not valid'
 
     # if monitor.valid:
@@ -74,7 +74,7 @@ async def update(channel):
         await channel.send(embed=Embed().set_image(url=nft['img']))
 
         info_string = f'''\
-Rank: **{nft['rank']}** ({monitor.collection.rank_pages[monitor.collection.rank_support].id})\n\
+Rank: **{nft['rank']}** ({monitor.collection.rank_tuple.supported_page.url})\n\
 Name: {nft['name']} | ID: {nft['id']} \n\
 Price: {nft['price']} SOL | Token: {nft['token']}\n\
 Attributes: \n'''
@@ -84,15 +84,14 @@ Attributes: \n'''
 
         await channel.send(info_string)
 
-#endregion
-
+# endregion
 
 
 # Biding
-#region
+# region
 @client.event
 async def on_ready():
-    print('Bot ready')  
+    print('Bot ready')
 
     channel = utils.get(client.get_all_channels(), name=CHANNEL)
 
@@ -111,7 +110,7 @@ async def ping(ctxt):
         'Bang'
     ]
 
-    await ctxt.send(f'{random.choice(ping_choices)}! {int(client.latency * 1e3)}ms')  
+    await ctxt.send(f'{random.choice(ping_choices)}! {int(client.latency * 1e3)}ms')
 
 
 @client.command(help=': Bot will repeat your text')
@@ -134,7 +133,7 @@ async def all(ctxt):
     if choice < 5:
         await ctxt.send('No')
         return
-    
+
     if len(monitors) == 0:
         await ctxt.send('No monitors!')
         return
@@ -170,11 +169,11 @@ async def delete(ctxt, id):
 @monitor.command(help=''': Change filters''', aliases=['change'])
 async def set(ctxt, id, *args):
     kwargs = parse_kwargs(args)
-    
+
     id = int(id)
 
     monitors[id].set_filters(**kwargs)
-    
+
     text = 'New filters are: '
     for filter in monitors[id].filters:
         text += f'{filter}, '
@@ -186,7 +185,6 @@ async def set(ctxt, id, *args):
 async def main_loop(channel):
     await update(channel)
     print(f'Loop done {time.asctime()}')
-#endregion
+# endregion
 
 client.run(BOT_KEY)
-

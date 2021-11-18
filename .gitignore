@@ -1,4 +1,5 @@
 venv/
 tests/
-code/__pycache__/
+__pycache__/
 code.egg-info
+*/.env
