@@ -1,9 +1,7 @@
 import os
 
-# from data import Database, NFTParser, turbo_check, get_last_nft
-# from solanart_funcs import Collection, get_nfts, SolanartSnapshot, parse_snapshot, filter_snapshot
 import solanart
-from united import objects
+from united import bases
 
 
 class Monitor:
@@ -11,13 +9,13 @@ class Monitor:
         self.collection = solanart.SolCollection(collection_id)
 
         old_nfts = solanart.get_nfts(collection_id)
-        self.old_snap = objects.Snapshot(old_nfts)
+        self.old_snap = bases.Snapshot(old_nfts)
 
         self.filters = filters
 
     def update(self) -> list[dict]:
         new_nfts = solanart.get_nfts(self.collection.id)
-        new_snap = objects.Snapshot(new_nfts)
+        new_snap = bases.Snapshot(new_nfts)
 
         # self.old_snap.list.pop(0)
         # self.old_snap.ids.pop(0)

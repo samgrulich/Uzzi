@@ -1,3 +1,3 @@
-"Access all united functions, class bases, classes"
+"Access all united functions, classes"
 
 print('united loaded')

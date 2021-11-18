@@ -236,7 +236,14 @@ class PageTuple:
 
     @property
     def supported_page(self) -> Page:
-        "Get supported page as type Page, returns `None` if not valid"
+        """
+        Get supported page object
+        
+        Returns
+        -------
+        Page
+            supported page, `None` if not valid
+        """
         if not self.valid:
             return None
 
@@ -244,7 +251,14 @@ class PageTuple:
 
     @property
     def valid(self) -> bool:
-        "Check if this tuple is valid"
+        """
+        Check if this tuple is valid
+        
+        Returns
+        -------
+        bool
+            validity of page
+        """
         if len(self.pages) == 0:
             return False
 
@@ -256,8 +270,52 @@ class PageTuple:
 
 
 class Collection:
-    def __init__(self, url: str, collection: str, collection_tuple: PageTuple, rank_tuple: PageTuple, rarity_tuple: PageTuple) -> None:
-        self.id = collection
+    """
+    Class used for nft collection parsing from web
+
+    Attributes
+    ----------
+    id : str
+        id of collection at marketplace
+    url : str
+        url of api nft getter (without id)
+    valid : bool
+        is collection valid
+    collection_tuple : PageTuple
+        pages that collection will be parsed from
+    rank_tuple : PageTuple
+        pages where the collection will get rank of nfts
+    rarity_tuple : RarityTuple
+        pages where are rarities of nft attributes
+
+    Methods
+    -------
+    parse_nft(raw_nft) -> NFT
+        raw_nft to nft object
+    get_rank(nft_id) -> int
+        rank of nft
+    get_rarities(atts) -> dict
+        rarities of given attributes
+
+    """
+    def __init__(self, url: str, collection_id: str, collection_tuple: PageTuple, rank_tuple: PageTuple, rarity_tuple: PageTuple) -> None:
+        """
+        Arguments
+        ---------
+        url : str
+            url of market api nft getter
+        collection_id : str
+            id of collection at marketplace
+        collection_tuple : PageTuple
+            tuple of marketplaces
+        rank_tuple : PageTuple
+            tuple of rank getting pages
+        rarity_tuple : PageTuple
+            tuple of att rarity getters
+        """
+        # TODO: add table support
+        
+        self.id = collection_id
         self.url = url
 
         self.collection_tuple = collection_tuple
@@ -285,15 +343,37 @@ class Collection:
         pass
 
     @property
-    def valid(self):
+    def valid(self) -> bool:
         "Check validity of this collection"
         return self.collection_tuple.valid
 
 
 class Snapshot:
-    "Snapshot of active page on market page"
+    """
+    Snapshot of active page on market page
+    
+    Attributes
+    ----------
+    list : list[dict]
+        list of raw nfts
+    ids : list[int]
+        list of ids of nfts in self.list
+
+    Methods
+    -------
+    __sub__(other: Snapshot) -> Snapshot
+        removes all equal objects
+    """
 
     def __init__(self, data: list[dict], ids: list[int] = None) -> None:
+        """
+        Arguments
+        ---------
+        data : list[dict]
+            list of raw nfts
+        ids : list[int] (Optional)
+            list of ids of nfts, it's optional
+        """
         self.list = data
 
         if not ids:
@@ -301,7 +381,14 @@ class Snapshot:
         self.ids = ids
 
     def __sub__(self, other: "Snapshot") -> "Snapshot":
-        "Get the difference between two lists, returns Snapshot object"
+        """
+        Get the difference between two lists
+
+        Returns
+        -------
+        Snapshot
+            objetcs which are only in the first snapshot
+        """
         final_ids = list(filter(lambda id: not id in other.ids, self.ids))
         final_list = [self.list[self.ids.index(id)] for id in final_ids]
 

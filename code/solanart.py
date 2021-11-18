@@ -1,7 +1,7 @@
 import requests
 import time
 from bs4 import BeautifulSoup
-from united import objects
+from united import bases
 
 
 # Pages
@@ -10,7 +10,7 @@ from united import objects
 #  Collection
 # region
 
-class Solanart(objects.Page):
+class Solanart(bases.Page):
     def __init__(self, collection: str) -> None:
         super().__init__(collection, 'https://solanart.io/collections', id='Solanart')
 
@@ -20,12 +20,12 @@ class Solanart(objects.Page):
 #  Ranking
 # region
 
-class RankTuple(objects.PageTuple):
+class RankTuple(bases.PageTuple):
     def export(self, nft_id: str or int, nft_name: str) -> int:
         return super().export(id=nft_name)
 
 
-class Howrare(objects.Page):
+class Howrare(bases.Page):
     def __init__(self, collection: str) -> None:
         super().__init__(collection, url='https://howrare.is', id='Howrare')
         self.collection = collection
@@ -60,7 +60,7 @@ class Howrare(objects.Page):
             print(page_id)
 
         return result_map
-
+    
     def export(self, id: str or int) -> int:
         "Export rank of nft with id, `None` mostly if not supported"
         if not self.valid:
@@ -86,7 +86,7 @@ class Howrare(objects.Page):
         return int(rank)
 
 
-class Moonrank(objects.Page):
+class Moonrank(bases.Page):
     # TODO: you know body n stuff
 
     pass
@@ -96,7 +96,7 @@ class Moonrank(objects.Page):
 # endregion
 
 
-class SolCollection(objects.Collection):
+class SolCollection(bases.Collection):
     def __init__(self, collection_id: str) -> None:
         "url is string before collection, collection means collection name"
         resposne = requests.get(
@@ -108,18 +108,19 @@ class SolCollection(objects.Collection):
         data = resposne.json()[0]
         name = data['name'].replace(' ', '').lower()
 
-        collection_tuple = objects.PageTuple([Solanart], collection_id)
+        collection_tuple = bases.PageTuple([Solanart], collection_id)
         rank_tuple = RankTuple([
             Howrare
         ], name)
-        rarity_tuple = objects.PageTuple([], '')
+        rarity_tuple = bases.PageTuple([], '')
 
         self.name = name
-        super().__init__('https://qzlsklfacc.medianetwork.cloud/nft_for_sale?collection=', collection_id, collection_tuple, rank_tuple, rarity_tuple)
+        super().__init__('https://qzlsklfacc.medianetwork.cloud/nft_for_sale?collection=',
+                         collection_id, collection_tuple, rank_tuple, rarity_tuple)
 
-    def parse_nft(self, raw_nft: dict) -> objects.NFT:
+    def parse_nft(self, raw_nft: dict) -> bases.NFT:
         rank = self.rank_tuple.export(raw_nft['id'], raw_nft['name'])
-        nft = objects.NFT(raw_nft['id'], raw_nft['name'], raw_nft['token_add'],
+        nft = bases.NFT(raw_nft['id'], raw_nft['name'], raw_nft['token_add'],
                           raw_nft['price'], raw_nft['link_img'], rank, raw_nft['attributes'])
 
         return nft
@@ -143,7 +144,7 @@ def get_nfts(collection_id: str) -> list[dict]:
     return nfts
 
 
-def parse_snapshot(snapshot: objects.Snapshot, collection: SolCollection) -> list[objects.NFT]:
+def parse_snapshot(snapshot: bases.Snapshot, collection: SolCollection) -> list[bases.NFT]:
     "Create nft object list from raw nft snapshot"
     nfts = []
 
@@ -154,7 +155,7 @@ def parse_snapshot(snapshot: objects.Snapshot, collection: SolCollection) -> lis
     return nfts
 
 
-def filter_snapshot(snapshot: objects.Snapshot or list[objects.NFT], **filters) -> list[objects.NFT]:
+def filter_snapshot(snapshot: bases.Snapshot or list[bases.NFT], **filters) -> list[bases.NFT]:
     "Filter snapshot"
     filtered = []
 
