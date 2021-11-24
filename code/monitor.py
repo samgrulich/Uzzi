@@ -1,20 +1,22 @@
-import os
-
-import solanart
-from united import bases
+# import solanart
+import magiceden
+from united import bases, functions
 
 
 class Monitor:
     def __init__(self, collection_id: str, **filters) -> None:
-        self.collection = solanart.SolCollection(collection_id)
+        self.collection = magiceden.MagicCollection(collection_id)
 
-        old_nfts = solanart.get_nfts(collection_id)
+        old_nfts = magiceden.get_nfts(collection_id)
         self.old_snap = bases.Snapshot(old_nfts)
+
+        dict_ = functions.TableLoader.Load(f"./tables/{collection_id}.csv")            
+        filters.update(dict_)
 
         self.filters = filters
 
     def update(self) -> list[dict]:
-        new_nfts = solanart.get_nfts(self.collection.id)
+        new_nfts = magiceden.get_nfts(self.collection.id)
         new_snap = bases.Snapshot(new_nfts)
 
         # self.old_snap.list.pop(0)
@@ -24,8 +26,8 @@ class Monitor:
         # self.old_snap.ids.pop(-1)
 
         result = new_snap - self.old_snap
-        parsed_result = solanart.parse_snapshot(result, self.collection)
-        filtered_result = solanart.filter_snapshot(
+        parsed_result = magiceden.parse_snapshot(result, self.collection)
+        filtered_result = magiceden.filter_snapshot(
             parsed_result, **self.filters)
 
         self.old_snap = new_snap

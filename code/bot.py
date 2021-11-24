@@ -55,34 +55,39 @@ def delete_monitor(id) -> str:
 
     if id in range(len(monitors)):
         monitors.pop(id)
-        text = f'Monitor at `{id}` **removed**'
+        text = f'Monitor at `{id}` **deleted**'
 
     return text
 
 
 async def update(channel):
-    all_nfts = []
-
-    for i, monitor in enumerate(monitors):
+    for monitor in monitors:
         nfts = monitor.update()
-        if nfts:
-            all_nfts += nfts
 
-    for nft in all_nfts:
-        nft = nft.vars()
+        if not nfts:
+            return 
 
-        await channel.send(embed=Embed().set_image(url=nft['img']))
+        for nft in nfts:
+            nft = nft.vars()
 
-        info_string = f'''\
-Rank: **{nft['rank']}** ({monitor.collection.rank_tuple.supported_page.url})\n\
+            # BUG: token parsing may not work for solanart
+            info_string = f'''\
+Rank: **{nft['rank']}** ([{monitor.collection.rank_tuple.supported_page.id}]({monitor.collection.rank_tuple.supported_page.get_nft_url(nft['id'])})) \
+                        ([{monitor.collection.collection_tuple.supported_page.id}]({monitor.collection.collection_tuple.supported_page.get_nft_url(nft['token'])}))\n\
 Name: {nft['name']} | ID: {nft['id']} \n\
-Price: {nft['price']} SOL | Token: {nft['token']}\n\
+Price: **{nft['price']}** SOL | Token: {nft['token']}\n\
 Attributes: \n'''
 
-        for att in nft['atts'].split(','):
-            info_string += f' \t - {att}, \n'
+            for key, att_type in nft['atts'].items():
+                info_string += f' \t - {key}: {att_type} \n'
 
-        await channel.send(info_string)
+            embed = Embed()
+            embed.set_author(name=f"Rank: {nft['rank']}; Price {nft['price']} SOL")
+            # embed.set_thumbnail(url=nft['img'])
+            embed.set_image(url=nft['img'])
+            embed.description = info_string
+
+            await channel.send(embed=embed)
 
 # endregion
 
@@ -131,7 +136,10 @@ async def all(ctxt):
     choice = random.randrange(0, 100)
 
     if choice < 5:
-        await ctxt.send('No')
+        if choice < 1:
+            await ctxt.send('I don\'t think i will')
+        else:
+            await ctxt.send('No.')
         return
 
     if len(monitors) == 0:
@@ -141,7 +149,13 @@ async def all(ctxt):
     for i, monitor in enumerate(monitors):
         # status = 'Active' if monitor.valid else 'Not supported'
         status = 'Active'
-        await ctxt.send(f'`Monitor at {i}, coll: {monitor.collection.collection}, status: {status}`')
+
+        text = f'Monitor at {i}, coll: {monitor.collection.id}, status: {status}, \n filters: '
+        for filter_, value in monitor.filters.items():
+            text += f'\n\t - {filter_}: {value}'
+
+
+        await ctxt.send(f'```{text}```')
 
 
 @client.group(pass_context=True, aliases=['m'])
@@ -174,11 +188,11 @@ async def set(ctxt, id, *args):
 
     monitors[id].set_filters(**kwargs)
 
-    text = 'New filters are: '
-    for filter in monitors[id].filters:
-        text += f'{filter}, '
+    text = f'New filters for {id} are: '
+    for filter_, value in monitors[id].filters.items():
+        text += f'\n - {filter_}: {value}'
 
-    await ctxt.send(text)
+    await ctxt.send(f'```{text}```')
 
 
 @tasks.loop(seconds=int(MAINLOOP_TIME))

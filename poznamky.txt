@@ -16,21 +16,20 @@ Memes
 
 TODO:
 {
-  Optimizazion
-    -add checks
-      -all of them :D
+  save last snap to file then load it if loop is longer than 10s
+    - fix the 0 price bug
 
-  Dis bot
-    -add loading bar 
+  Debug 
+    - add history
+    - add longer
 
-  Rankig:
-    first (manual)
-      -Table
-    auto
-      -Page api
+  Buyer
+    - add log history
+    - collect data
+    - simluate buying bot
 
-  Formatting
-    -add url pages to result
+  Unite Solanart/Magiceden scripts
+    - rather simplify ...
 }
 
 Commit loading:

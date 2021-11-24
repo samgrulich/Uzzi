@@ -139,7 +139,7 @@ def get_nfts(collection_id: str) -> list[dict]:
         time.sleep(5)
         return get_nfts(collection_id)
 
-    nfts = requests.get(url).json()
+    nfts = response.json()
 
     return nfts
 

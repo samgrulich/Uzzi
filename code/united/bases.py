@@ -31,7 +31,7 @@ import requests
 class NFT:
     "NFT class for easier cross platforming"
 
-    def __init__(self, id: str, name: str, token: str, price: float, image: str, rank: int, attributes: str) -> None:
+    def __init__(self, id: str, name: str, token: str, price: float, image: str, rank: int, attributes: dict) -> None:
         """
         Parameters
         ----------
@@ -45,10 +45,9 @@ class NFT:
             URL of nft image
         rank : int
             Rank of nft, ussually won't come with raw nft data
-        attributes : str
-            String dictionary of nft's attributes (ex. 'Background: Red, ..., Hat: cylinder')
+        attributes : dict
+            Dictionary of nft's attributes (ex. {Background: Red, ..., Hat: cylinder})
         """
-        # TODO: atts aren't so much united
 
         self.id = id
         self.name = name
@@ -83,7 +82,7 @@ class Page:
     url : str
         Url of website + collection `doesn't` have '/' at the end
     support : bool
-        Is website supported or not (ex. True=Supported)
+        Is website supported or not (ex. support=True=Supported)
     id : str
         Id of website (ex. Google)
     valid : bool
@@ -94,13 +93,16 @@ class Page:
     get_support() -> bool:
         Check support
 
+    get_nft_url(nft_id) -> str:
+        Get url of nft details page
+
     export(nft_data) -> ???:
         This is the most customized method, this is called for 
         extraction data of nft_data from website 
 
     """
 
-    def __init__(self, collection_id: str, url: str, id: str = 'None') -> None:
+    def __init__(self, collection_id: str, url: str, id: str = 'None', nft_url: str=None) -> None:
         """
         Parameters
         ----------
@@ -108,12 +110,14 @@ class Page:
             Id of collection page will use
         url : str
             URL of website page will use
-        id : str
+        id : str - Optional
             ID of page (ex. Google)
+        nft_url : str - Optional
+            URL for getting nft info
         """
-        # BUG: is .valid needed??
 
         self.url = f'{url}/{collection_id}'
+        self.nft_url = nft_url if nft_url else self.url
         self.support = self.get_support()
         self.id = id
 
@@ -134,6 +138,13 @@ class Page:
         except:
             return False
 
+    def get_nft_url(self, nft_id: str or int) -> str:
+        """
+        Get url of nft details, returns string
+        """
+
+        return f'{self.nft_url}/{nft_id}'
+
     def export(self, **nft_data):
         """
         Export data of nft from web
@@ -146,17 +157,17 @@ class Page:
     @property
     def valid(self) -> bool:
         """
-        Check validity of page with additional None check
+        Check validity of page
 
         Returns
         -------
         bool
             is page supported
         """
-        if self.support is None:
-            return False
+        # if self.support is None:
+        #     return False
 
-        return True
+        return self.support
 
 
 class PageTuple:
@@ -264,7 +275,9 @@ class PageTuple:
 
         if self.supported_index is None:
             index = self.get_support()
-            return index is None
+            self.supported_index = index
+
+            return index is not None
 
         return True
 
