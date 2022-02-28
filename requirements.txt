@@ -9,7 +9,6 @@ certifi==2021.10.8
 cffi==1.15.0
 chardet==4.0.0
 charset-normalizer==2.0.7
--e git+https://github.com/SamecGG/Uzzi.git@a89a7bbe15a5318e5ad5b0734f16696b43eb8379#egg=Code
 cryptography==35.0.0
 cycler==0.11.0
 discord==1.7.3
