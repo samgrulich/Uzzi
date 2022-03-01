@@ -2,6 +2,8 @@
 import magiceden
 from united import bases, functions
 
+from typing import List, Tuple
+
 
 class Monitor:
     def __init__(self, collection_id: str, **filters) -> None:
@@ -15,7 +17,7 @@ class Monitor:
 
         self.filters = filters
 
-    def update(self) -> list[dict]:
+    def update(self) -> List[dict]:
         new_nfts = magiceden.get_nfts(self.collection.id)
         new_snap = bases.Snapshot(new_nfts)
 
@@ -38,7 +40,7 @@ class Monitor:
         "Cahnge nft filters"
         self.filters = filters
 
-    def get_support(self) -> tuple[bool, str, str]:
+    def get_support(self) -> Tuple[bool, str, str]:
         "Check if monitor is valid, then nft page name and then rank support"
         nft_support = self.nft_parser.supported_page
 

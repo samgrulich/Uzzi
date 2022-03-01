@@ -1,6 +1,7 @@
 import requests
 import time
 from bs4 import BeautifulSoup
+from typing import List
 from united import bases
 
 
@@ -134,7 +135,7 @@ def get_nft(collection_id: str, nft_token: str or int) -> dict:
     return None
 
 
-def get_nfts(collection_id: str) -> list[dict]:
+def get_nfts(collection_id: str) -> List[dict]:
     "Get raw data nfts"
     url = f'https://api-mainnet.magiceden.io/rpc/getListedNFTsByQuery?q=%7B%22%24match%22%3A%7B%22collectionSymbol%22%3A%22{collection_id}%22%7D%2C%22%24sort%22%3A%7B%22createdAt%22%3A-1%7D%2C%22%24skip%22%3A0%2C%22%24limit%22%3A20%7D'
 
@@ -152,7 +153,7 @@ def get_nfts(collection_id: str) -> list[dict]:
     return nfts["results"]
 
 
-def parse_snapshot(snapshot: bases.Snapshot, collection: MagicCollection) -> list[bases.NFT]:
+def parse_snapshot(snapshot: bases.Snapshot, collection: MagicCollection) -> List[bases.NFT]:
     "Create nft object list from raw nft snapshot"
     nfts = []
 
@@ -164,7 +165,7 @@ def parse_snapshot(snapshot: bases.Snapshot, collection: MagicCollection) -> lis
     return nfts
 
 
-def filter_snapshot(snapshot: bases.Snapshot or list[bases.NFT], **filters) -> list[bases.NFT]:
+def filter_snapshot(snapshot: bases.Snapshot or List[bases.NFT], **filters) -> List[bases.NFT]:
     "Filter snapshot"
     filtered = []
 

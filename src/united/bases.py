@@ -4,7 +4,7 @@ Group of universal classes/interfaces
 
 All classes in this module are designed to behave as interfaces for 
 easier integration of multipage support, you can modify them but
-you can use them as they are
+do not have to
 
 Classes:
 --------
@@ -26,6 +26,26 @@ Classes:
 """
 
 import requests
+from typing import List
+
+REC_LIM = 5
+
+"""
+Check for url recursively
+"""
+def safe_request(url):
+    try:
+        condition = False
+
+        for i in range(REC_LIM):
+            response = requests.get(url)
+            
+            if response.status_code == 200:
+                return True
+
+        return False
+    except:
+        return False
 
 
 class NFT:
@@ -57,21 +77,6 @@ class NFT:
         self.rank = rank
         self.atts = attributes
 
-    # public
-
-    def vars(self) -> dict:
-        """
-        Get dictionary of variables
-
-        Same as using 'vars(this_obj)', parses vars of this object to string
-
-        Returns
-        -------
-        dict
-            This object's vars parsed into dictionary
-        """
-        return vars(self)
-
 
 class Page:
     """
@@ -82,7 +87,7 @@ class Page:
     url : str
         Url of website + collection `doesn't` have '/' at the end
     support : bool
-        Is website supported or not (ex. support=True=Supported)
+        Is website supported (True=Supported)
     id : str
         Id of website (ex. Google)
     valid : bool
@@ -102,7 +107,7 @@ class Page:
 
     """
 
-    def __init__(self, collection_id: str, url: str, id: str = 'None', nft_url: str=None) -> None:
+    def __init__(self, collection_id: str, url: str, id: str = None, nft_url: str=None) -> None:
         """
         Parameters
         ----------
@@ -131,12 +136,7 @@ class Page:
             is page aviable
         """
 
-        # TODO: make it request again
-        try:
-            response = requests.get(f'{self.url}')
-            return response.status_code == 200
-        except:
-            return False
+        return safe_request(self.url)
 
     def get_nft_url(self, nft_id: str or int) -> str:
         """
@@ -164,8 +164,6 @@ class Page:
         bool
             is page supported
         """
-        # if self.support is None:
-        #     return False
 
         return self.support
 
@@ -195,7 +193,7 @@ class PageTuple:
 
     """
 
-    def __init__(self, page_types: list[type], collection_id: str) -> None:
+    def __init__(self, page_types: list, collection_id: str) -> None:
         """
         Arguments
         ---------
@@ -378,7 +376,7 @@ class Snapshot:
         removes all equal objects
     """
 
-    def __init__(self, data: list[dict], ids: list[int] = None) -> None:
+    def __init__(self, data: List[dict], ids: List[int] = None) -> None:
         """
         Arguments
         ---------

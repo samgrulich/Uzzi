@@ -11,7 +11,7 @@ import random
 from monitor import Monitor
 
 
-config = dotenv_values(sys.path[0] + '\\.env')
+config = dotenv_values(sys.path[0] + '/.env')
 CHANNEL = config['channel']
 BOT_KEY = config['bot_key']
 MAINLOOP_TIME = config['mainloop_time']

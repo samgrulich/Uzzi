@@ -126,7 +126,7 @@ class SolCollection(bases.Collection):
         return nft
 
 
-def get_nfts(collection_id: str) -> list[dict]:
+def get_nfts(collection_id: str) -> list(dict):
     "Get raw data nfts"
     url = f'https://qzlsklfacc.medianetwork.cloud/nft_for_sale?collection={collection_id}'
 
@@ -144,7 +144,7 @@ def get_nfts(collection_id: str) -> list[dict]:
     return nfts
 
 
-def parse_snapshot(snapshot: bases.Snapshot, collection: SolCollection) -> list[bases.NFT]:
+def parse_snapshot(snapshot: bases.Snapshot, collection: SolCollection) -> list(bases.NFT):
     "Create nft object list from raw nft snapshot"
     nfts = []
 
@@ -155,7 +155,7 @@ def parse_snapshot(snapshot: bases.Snapshot, collection: SolCollection) -> list[
     return nfts
 
 
-def filter_snapshot(snapshot: bases.Snapshot or list[bases.NFT], **filters) -> list[bases.NFT]:
+def filter_snapshot(snapshot: bases.Snapshot or list(bases.NFT), **filters) -> list(bases.NFT):
     "Filter snapshot"
     filtered = []
 
