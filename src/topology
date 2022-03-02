@@ -1,0 +1,18 @@
+SRC
+
+# crossplatform
+## core
+ NFT
+ Collection
+
+ Snapshot 
+
+ Page - store data about website
+ PageTuple - for manipulation with multiple pages
+
+# bot.py
+# monitor.py
+ Monitor 
+
+# pages
+ magiceden
