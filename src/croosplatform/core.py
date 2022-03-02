@@ -28,7 +28,16 @@ Classes:
 import requests
 from typing import List
 
+
 REC_LIM = 5
+
+
+class NFT: pass
+class Collection: pass
+
+class Page: pass
+class Snapshot: pass
+
 
 """
 Check for url recursively
@@ -107,7 +116,7 @@ class Collection:
         rarities of given attributes
 
     """
-    def __init__(self, url: str, collection_id: str, collection_tuple: PageTuple, rank_tuple: PageTuple, rarity_tuple: PageTuple) -> None:
+    def __init__(self, collection_id: str, info_page: Page, rank_page: Page) -> None:
         """
         Arguments
         ---------
@@ -122,34 +131,15 @@ class Collection:
         rarity_tuple : PageTuple
             tuple of att rarity getters
         """
-        # TODO: add table support
-        
         self.id = collection_id
-        self.url = url
+        self.rank_page = rank_page
 
-        self.collection_tuple = collection_tuple
-        self.rank_tuple = rank_tuple
-        self.rarity_tuple = rarity_tuple
+        # name, 
 
-    def parse_nft(self, raw_nft: dict) -> NFT:
-        "Parse raw nft to polished universal nft object"
-        return None
+    def parse_nft(self, raw_nft: dict) -> NFT: pass
 
-    def get_rank(self, nft_id: int) -> int:
-        "Get rank of nft, `None` if ranks aren't supported"
-        if not self.rank_tuple.valid:
-            return None
+    def get_rank(self, nft_id: int) -> int: pass
 
-        return self.rank_tuple.export(nft_id)
-
-    def get_rarities(self, atts: dict) -> dict:
-        "Parse rarity/score of each attribute, `None` if didn't succeded"
-        if not self.valid:
-            return None
-
-        # TODO: get rarities
-
-        pass
 
     @property
     def valid(self) -> bool:
@@ -186,7 +176,7 @@ class Page:
 
     """
 
-    def __init__(self, collection_id: str, url: str, id: str = None, nft_url: str=None) -> None:
+    def __init__(self, url: str) -> None:
         """
         Parameters
         ----------
@@ -200,10 +190,9 @@ class Page:
             URL for getting nft info
         """
 
-        self.url = f'{url}/{collection_id}'
-        self.nft_url = nft_url if nft_url else self.url
-        self.support = self.get_support()
-        self.id = id
+        self.url = f'{url}/'
+
+        # all_collections
 
     def get_support(self) -> bool:
         """
@@ -215,23 +204,7 @@ class Page:
             is page aviable
         """
 
-        return safe_request(self.url)
-
-    def get_nft_url(self, nft_id: str or int) -> str:
-        """
-        Get url of nft details, returns string
-        """
-
-        return f'{self.nft_url}/{nft_id}'
-
-    def export(self, **nft_data):
-        """
-        Export data of nft from web
-
-        Returns
-        -------
-        """
-        return None
+        pass
 
     @property
     def valid(self) -> bool:
