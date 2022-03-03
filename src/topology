@@ -8,7 +8,6 @@ SRC
  Snapshot 
 
  Page - store data about website
- PageTuple - for manipulation with multiple pages
 
 # bot.py
 # monitor.py
