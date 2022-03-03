@@ -2,7 +2,7 @@ import requests
 import time
 from bs4 import BeautifulSoup
 from typing import List
-from united import bases
+from crossplatform import bases
 
 
 # Pages

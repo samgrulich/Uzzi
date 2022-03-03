@@ -26,6 +26,8 @@ Classes:
 """
 
 import requests
+from crossplatform import exceptions
+from crossplatform.types import MarketPageAPIs
 from typing import List, Dict
 
 
@@ -101,55 +103,60 @@ class Collection:
     ----------
     id : str
         id of collection at marketplace
-    marketPage : MarketPage
-        object of the market web
-    rankPage : RankPage
-        object of the ranking page
 
     Methods
     -------
     get_snapshot() - get difference between the last snapshot and this one
 
     """
-    def __init__(self, collectionId: str, filters: dict, marketPage: MarketPage, rankPage: RankPage) -> None:
+    def __init__(self, collectionId: str, name: str) -> None:
         self.id = collectionId
-        self.filters = filters
+        self.name = name
         self.lastSnap = None
-        
-        self.marketPage = marketPage
-        self.rankPage = rankPage
 
-    def get_snapshot(self, new_snap: Snapshot) -> Snapshot: 
-        # TODO: difference between the two snapshots, then save this snap as last one 
-        
-        pass
+    def get_snapshot(self, newSnap: Snapshot) -> Snapshot: 
+        result = newSnap - self.lastSnap
+        self.lastSnap = newSnap 
+
+        return result
 
 
 class Page:
     """
     Class used to store and change data from Website
+
+    To initialize:
+    --------------
+
+    request(self) -> str
+    parse(self, key: str) -> str
+
+    _parse_collections(self) -> List[str]
+
     """
 
-    def __init__(self, url: str, apis: Dict[str, str] = None) -> None:
+    def __init__(self, url: str, apis: Dict[int, function] = None) -> None:
         self.url = f'{url}/'
         self.apis = apis
+        self.collections = self._parse_collections()
     
-    def request(self) -> str: pass
+    def request(self) -> str: raise exceptions.NotInitialized("Page: request")
+    def parse(self, key: str): raise exceptions.NotInitialized("Page: parse")
+    
+# private: 
+    def _parse_collections(self) -> List[str]: raise exceptions.NotInitialized("Page: _parse_collections")
+    def _check_collection(self, collectionId: str): return collectionId in self.collections
 
-    def get_support(self) -> bool:
-        """
-        Check if the page is aviable
-        """
 
-        # TODO: try to reach the website, then check the response
-            
-        pass
+class MarketPage(Page):
+    def __init__(self, url: str, apis: Dict[int, function] = None) -> None:
+        super().__init__(url, apis)
 
-    @property
-    def valid(self) -> bool:
-        """
-        Check if the page is aviable
-        """
+    def get_snapshot(self, collectionId: str) -> Snapshot: raise exceptions.NotInitialized("MarketPage: get_snapshot")
 
-        return self.support
-        
+
+class RankPage(Page):
+    def __init__(self, url: str, apis: Dict[int, function] = None) -> None:
+        super().__init__(url, apis)
+
+    def get_rank(self, nftId) -> int: pass
