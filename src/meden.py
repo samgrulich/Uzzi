@@ -41,7 +41,8 @@ class Magiceden(core.MarketPage):
                 nft_dict["escrow_pubkey"],
                 self.rankPage.get_rank(collectionId, nft_dict["title"]),
                 nft_dict["attributes"]
-            )
+            ), 
+            data
         ))
 
         return core.Snapshot(nfts) 

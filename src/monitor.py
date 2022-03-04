@@ -1,67 +1,78 @@
 # import solanart
-import magiceden
-from crossplatform import core, functions
+import meden
+from crossplatform import core, exceptions, types
 
-from typing import List, Tuple
+from typing import List, Tuple, Dict
+
+
+class FilterData:
+    def __init__(self, **kwargs):
+        result = {}
+
+        for key, value in kwargs.items():
+            if key in types.NFTFilters.__dict__.keys():
+                filter_dict = types.NFTFilters.__dict__[key]
+                result += {
+                    filter_dict["id"]: # id of the attribute in NFT class
+                    lambda nft_value: filter_dict["func"](value, nft_value) # function for checking the value
+                }
+
+        self.data = result # dict of "nft_att": "filter_func"(value)
+
+
+class CollectionData:
+    def __init__(self, collectionId: str, filters: FilterData):
+        self.id = collectionId
+        self.filterData = filters
+
+        self.lastSnapshot = None
+
+    def filter_snapshot(self, snapshot: core.Snapshot) -> core.Snapshot:
+        result = []
+        
+        for nft in snapshot.list:
+            valid = True
+            
+            for att, filter_func in self.filterData.data.items():
+                valid &= filter_func(nft[att])
+                
+                if not valid:
+                    break
+
+            if valid:
+                result += nft
+            
+        return core.Snapshot(result)
+
+    def update_snapshot(self, newSnapshot: core.Snapshot) -> core.Snapshot:
+        self.lastSnapshot = self.filter_snapshot(newSnapshot)
+
+        return self.lastSnapshot
 
 
 class Monitor:
-    def __init__(self, collection_id: str, **filters) -> None:
-        self.collection = magiceden.MagicCollection(collection_id)
+    def __init__(self, marketPage: core.MarketPage) -> None:
+        self.collections = None
+        self.marketPage = marketPage
 
-        old_nfts = magiceden.get_nfts(collection_id)
-        self.old_snap = core.Snapshot(old_nfts)
 
-        dict_ = functions.TableLoader.Load(f"./tables/{collection_id}.csv")            
-        filters.update(dict_)
+    def update(self) -> Dict[str, core.Snapshot]:
+        if self.collections == None:
+            raise exceptions.General(f"There are no collections in {self} monitor")
 
-        self.filters = filters
+        result = {}
 
-    def update(self) -> List[dict]:
-        new_nfts = magiceden.get_nfts(self.collection.id)
-        new_snap = core.Snapshot(new_nfts)
+        for collection in self.collections:
+            snapshot = core.MarketPage.get_snapshot(collection.id)
+            collection.update_snapshot(snapshot)
 
-        # self.old_snap.list.pop(0)
-        # self.old_snap.ids.pop(0)
+            result += {collection["id"]: snapshot}
 
-        # self.old_snap.list.pop(-1)
-        # self.old_snap.ids.pop(-1)
+        return result
 
-        result = new_snap - self.old_snap
-        parsed_result = magiceden.parse_snapshot(result, self.collection)
-        filtered_result = magiceden.filter_snapshot(
-            parsed_result, **self.filters)
-
-        self.old_snap = new_snap
-
-        return filtered_result
-
-    def set_filters(self, **filters) -> None:
-        "Cahnge nft filters"
-        self.filters = filters
-
-    def get_support(self) -> Tuple[bool, str, str]:
-        "Check if monitor is valid, then nft page name and then rank support"
-        nft_support = self.nft_parser.supported_page
-
-        if not nft_support:
-            return [False, 'None', 'None']
-
-        rank_support = self.nft_parser.supported_page.rank_parser.supported_page
-
-        nft_page_name = 'None'
-        rank_page_name = 'None'
-
-        # validity of this monitor
-        valid = nft_support
-
-        if nft_support:
-            nft_page_name = nft_support.id
-
-        if rank_support:
-            rank_page_name = rank_support.id
-
-        return (valid, nft_page_name, rank_page_name)
+    # def set_filters(self, **filters) -> None:
+    #     "Cahnge nft filters"
+    #     self.filters = filters
 
 
 # monitor = Monitor('cyberpharmacist', Background=10)
