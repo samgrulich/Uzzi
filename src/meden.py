@@ -29,18 +29,29 @@ class Magiceden(core.MarketPage):
 
         data = response.json()["results"]
 
-        # TODO: parse every one of these to nft
-        # add them to snapshot
-        # return snapshot
+        self.rankPage = Howrare()
 
-        return 
+        nfts = list(map(
+            lambda nft_dict : 
+                core.NFT(
+                nft_dict["id"],
+                nft_dict["title"],
+                nft_dict["price"],
+                nft_dict["img"],
+                nft_dict["escrow_pubkey"],
+                self.rankPage.get_rank(collectionId, nft_dict["title"]),
+                nft_dict["attributes"]
+            )
+        ))
+
+        return core.Snapshot(nfts) 
 
 # private:
     def _parse_collections(self) -> List[str]:
         url = self.apis[MarketPageAPIs.all_collections]()
         response = requests.get(url)
 
-        if response != 200:
+        if response.status_code != 200:
             raise exceptions.NetworkError(f"Couldn't reach all collections, {url}")
 
         data = response.json()["collections"] # list of dictionaries
@@ -58,3 +69,17 @@ class Howrare(core.RankPage):
                 RankPageAPIs.collection_rate: lambda collection : f"https://howrare.is/api/v0.1/collections/{collection}/only_rarity"
             } #apis
             )
+
+# private: 
+    def _get_collection_data(self, collectionId: str) -> core.Collection:
+        # get collection ranks
+        response = requests.get(self.apis[RankPageAPIs.collection_rate](collectionId))
+
+        if response.status_code != 200:
+            raise exceptions.NetworkError("collection request failed")
+
+        data = response.json()["result"]["data"]
+
+        ranks = {nft_dict["name"] : nft_dict["rank"] for nft_dict in data["items"]} # extract id: rank dict from collection data
+
+        return core.Collection(collectionId, data["collection"], ranks)

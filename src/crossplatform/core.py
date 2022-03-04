@@ -109,10 +109,17 @@ class Collection:
     get_snapshot() - get difference between the last snapshot and this one
 
     """
-    def __init__(self, collectionId: str, name: str) -> None:
+    def __init__(self, collectionId: str, name: str, ranks: Dict[str, int]) -> None:
         self.id = collectionId
         self.name = name
         self.lastSnap = None
+        self.ranks = ranks
+
+    def get_rank(self, nftId: str) -> int:
+        if not nftId in self.ranks.keys():
+            raise exceptions.NotValidQuerry(f"{self.name}; {nftId}")
+
+        return self.ranks[nftId]
 
     def get_snapshot(self, newSnap: Snapshot) -> Snapshot: 
         result = newSnap - self.lastSnap
@@ -159,4 +166,35 @@ class RankPage(Page):
     def __init__(self, url: str, apis: Dict[int, function] = None) -> None:
         super().__init__(url, apis)
 
-    def get_rank(self, nftId) -> int: pass
+        self.collections_data = None # dict [collectionId, collection obj]
+
+    def get_rank(self, collection: str or Collection, nftId: str) -> int: 
+        if type(collection) == Collection: # use the passed collection
+            return collection.get_rank(nftId)
+        
+        if not collection in self.collections:
+            raise exceptions.NotValidQuerry(collection)
+
+        if not collection in self.collections_data.keys(): # get collection from local storage
+            coll_data = self.get_collection_data(collection)
+        else:
+            coll_data = self.collections_data[collection]
+        
+        return coll_data.get_rank(nftId)
+        
+
+    def get_collection_data(self, collectionId: str) -> Collection:
+        # get collection object from id
+        if not collectionId in self.collections:
+            raise exceptions.NotValidQuerry(collectionId)
+        
+        if collectionId in self.collections_data.keys():
+            return self.collections_data[collectionId]
+
+        collection = self._get_collection_data(collectionId)
+        self.collections_data[collectionId] = collection
+
+        return collection
+
+# private: 
+    def _get_collection_data(self, collectionId: str) -> Collection: pass
