@@ -1,6 +1,6 @@
 # import solanart
 import magiceden
-from united import bases, functions
+from crossplatform import core, functions
 
 from typing import List, Tuple
 
@@ -10,7 +10,7 @@ class Monitor:
         self.collection = magiceden.MagicCollection(collection_id)
 
         old_nfts = magiceden.get_nfts(collection_id)
-        self.old_snap = bases.Snapshot(old_nfts)
+        self.old_snap = core.Snapshot(old_nfts)
 
         dict_ = functions.TableLoader.Load(f"./tables/{collection_id}.csv")            
         filters.update(dict_)
@@ -19,7 +19,7 @@ class Monitor:
 
     def update(self) -> List[dict]:
         new_nfts = magiceden.get_nfts(self.collection.id)
-        new_snap = bases.Snapshot(new_nfts)
+        new_snap = core.Snapshot(new_nfts)
 
         # self.old_snap.list.pop(0)
         # self.old_snap.ids.pop(0)
