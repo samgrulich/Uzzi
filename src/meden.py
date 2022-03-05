@@ -18,7 +18,7 @@ class Magiceden(core.MarketPage):
             } # apis  
             )
 
-    def get_snapshot(self, collectionId: str) -> core.Snapshot:
+    def get_snapshot(self, collectionId: str, rankId: str) -> core.Snapshot:
         if not self._check_collection(collectionId):
             raise Exception("Not valid collection")
 
@@ -41,8 +41,8 @@ class Magiceden(core.MarketPage):
                 nft_dict["mintAddress"],
                 nft_dict["price"],
                 nft_dict["img"],
-                nft_dict["rarity"],
-                # self.rankPage.get_rank(collectionId, nft_dict["title"]),
+                # nft_dict["rarity"],
+                self.rankPage.get_rank(rankId, nft_dict["title"]),
                 nft_dict["attributes"]
             ), 
             data
@@ -85,7 +85,7 @@ class Howrare(core.RankPage):
             raise core_exceptions.NetworkError(f"Couldn't reach all collections, {url}")
 
         data = response.json()["result"]["data"] # list of dictionaries
-        collections = list(map(lambda collection_dict: collection_dict["url"][1:] , data))
+        collections = list(map(lambda collection_dict: collection_dict["url"][1:].lower() , data))
 
         return collections
 

@@ -21,8 +21,9 @@ class FilterData:
 
 
 class CollectionData:
-    def __init__(self, collectionId: str, filters: FilterData):
+    def __init__(self, collectionId: str, rankId, filters: FilterData):
         self.id = collectionId
+        self.rankId = rankId
         self.filterData = filters
 
         self.lastSnapshot = None
@@ -63,7 +64,7 @@ class Monitor:
         result = {}
 
         for collection in self.collections:
-            snapshot = self.marketPage.get_snapshot(collection.id)
+            snapshot = self.marketPage.get_snapshot(collection.id, collection.rankId)
             snapshot = collection.update_snapshot(snapshot)
 
             if snapshot.isEmpty():
@@ -73,12 +74,12 @@ class Monitor:
 
         return result
 
-    def add_collection(self, collectionId: str, **filters) -> None:
+    def add_collection(self, collectionId: str, rankId: str, **filters) -> None:
         if not self.marketPage._check_collection(collectionId):
             raise errors.NotValidQuerry(f"CollectionID {collectionId}")
 
         self.collectionIds[collectionId] = len(self.collections)
-        self.collections.append(CollectionData(collectionId, FilterData(**filters)))
+        self.collections.append(CollectionData(collectionId, rankId, FilterData(**filters)))
 
     def remove_collection(self, collectionId: str):
         if not collectionId in self.collectionIds:

@@ -46,9 +46,9 @@ def parse_kwargs(args) -> dict:
     return kwargs
 
 
-def create_monitor(collectionId: str, **filters) -> str:
+def create_monitor(collectionId: str, rankId: str, **filters) -> str:
     try:
-        monitor.add_collection(collectionId, **filters)
+        monitor.add_collection(collectionId, rankId, **filters)
     except errors.NotValidQuerry:
         return f'' # not valid collection
     
@@ -79,7 +79,7 @@ async def update(channel):
         for nft in snapshot.list:
             info_string = f'''\
 (Magiceden)[{monitor.marketPage.apis[core_types.MarketPageAPIs.nft_querry](nft.token)}]
-Rank
+Rank: {nft.rank}
 Name: {nft.name}
 Price: **{nft.price}** SOL 
 Attributes: \n'''
@@ -170,11 +170,11 @@ async def monitorCMD(ctxt):
 
 
 @monitorCMD.command(help=': Create monitor', aliases=['c'])
-async def create(ctxt, collectionId: str, *args):
+async def create(ctxt, collectionId: str, rankId: str, *args):
     await ctxt.send('On it!')
 
     kwargs = parse_kwargs(args)
-    text = create_monitor(collectionId, **kwargs)
+    text = create_monitor(collectionId, rankId, **kwargs)
 
     await ctxt.send(text)
 
