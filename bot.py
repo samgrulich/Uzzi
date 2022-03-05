@@ -8,16 +8,27 @@ import sys
 import time
 import random
 
+if not os.path.exists("src/"):
+    raise Exception("Uzzi module not found")
+
+sys.path.append("src/")
+
+import meden
 from monitor import Monitor
+from crossplatform import core_exceptions as errors
+from crossplatform import core_types
 
 
 config = dotenv_values(sys.path[0] + '/.env')
+BOT_KEY = config['key']
 CHANNEL = config['channel']
-BOT_KEY = config['bot_key']
-MAINLOOP_TIME = config['mainloop_time']
+MAINLOOP_TIME = config['interval']
 
 client = commands.Bot(command_prefix='.')
-monitors = []
+
+magiceden = meden.Magiceden()
+monitor = Monitor(magiceden)
+
 
 
 # Functions
@@ -35,57 +46,55 @@ def parse_kwargs(args) -> dict:
     return kwargs
 
 
-def create_monitor(collection, **filters) -> str:
-    monitor = Monitor(collection, **filters)
+def create_monitor(collectionId: str, **filters) -> str:
+    try:
+        monitor.add_collection(collectionId, **filters)
+    except errors.NotValidQuerry:
+        return f'' # not valid collection
+    
+    # monitor.update()
 
-    text = f'{collection} is not valid'
-
-    # if monitor.valid:
-    monitors.append(monitor)
-    text = f'Monitor **created** at `{len(monitors) - 1}`'
-
-    return text
+    return f'Monitor for `{collectionId}` **created**, `{len(monitor.collections)}` collections'
 
 
-def delete_monitor(id) -> str:
-    text = f'`{id}` out of bounds (0-{len(monitors)})'
+def delete_monitor(id: str) -> str:
+    try:
+        monitor.remove_collection(id)
+    except errors.NotValidQuerry:
+        return f'' # not valid collection
 
-    id = int(id)
-    text = len(monitors)
-
-    if id in range(len(monitors)):
-        monitors.pop(id)
-        text = f'Monitor at `{id}` **deleted**'
-
-    return text
+    return f'Monitor for `{id}` **deleted**'
 
 
 async def update(channel):
-    for monitor in monitors:
-        nfts = monitor.update()
+    try:
+        snapshots = monitor.update()
+    except errors.General:
+        return
 
-        if not nfts:
-            return 
+    if not snapshots:
+        return
 
-        for nft in nfts:
-            nft = nft.vars()
-
-            # BUG: token parsing may not work for solanart
+    for collectionId, snapshot in snapshots.items():
+        for nft in snapshot.list:
             info_string = f'''\
-Rank: **{nft['rank']}** ([{monitor.collection.rank_tuple.supported_page.id}]({monitor.collection.rank_tuple.supported_page.get_nft_url(nft['id'])})) \
-                        ([{monitor.collection.collection_tuple.supported_page.id}]({monitor.collection.collection_tuple.supported_page.get_nft_url(nft['token'])}))\n\
-Name: {nft['name']} | ID: {nft['id']} \n\
-Price: **{nft['price']}** SOL | Token: {nft['token']}\n\
+(Magiceden)[{monitor.marketPage.apis[core_types.MarketPageAPIs.nft_querry](nft.token)}]
+Rank
+Name: {nft.name}
+Price: **{nft.price}** SOL 
 Attributes: \n'''
 
-            for key, att_type in nft['atts'].items():
+            for att_pair in nft.atts:
+                key = att_pair["trait_type"]
+                att_type = att_pair["value"]
+
                 info_string += f' \t - {key}: {att_type} \n'
 
             embed = Embed()
-            embed.set_author(name=f"Rank: {nft['rank']}; Price {nft['price']} SOL")
+            embed.set_author(name=f"Rank; Price {nft.price} SOL")
             # embed.set_thumbnail(url=nft['img'])
-            embed.set_image(url=nft['img'])
-            embed.description = info_string
+            embed.set_image(url=nft.img)
+            embed.description = info_string.replace("\\", "")
 
             await channel.send(embed=embed)
 
@@ -131,7 +140,7 @@ async def say(ctxt, text):
     await ctxt.send(text)
 
 
-@client.command(help=': List of all monitors', aliases=['a, al, am'])
+@client.command(help=': List all monitors', aliases=['a, al, am, all, lall, list'])
 async def all(ctxt):
     choice = random.randrange(0, 100)
 
@@ -142,57 +151,53 @@ async def all(ctxt):
             await ctxt.send('No.')
         return
 
-    if len(monitors) == 0:
+    if len(monitor.collections) == 0:
         await ctxt.send('No monitors!')
         return
 
-    for i, monitor in enumerate(monitors):
-        # status = 'Active' if monitor.valid else 'Not supported'
-        status = 'Active'
-
-        text = f'Monitor at {i}, coll: {monitor.collection.id}, status: {status}, \n filters: '
-        for filter_, value in monitor.filters.items():
-            text += f'\n\t - {filter_}: {value}'
-
+    for i, collection in enumerate(monitor.collections):
+        text = f'Monitor at {i}, coll: {collection.id}, \n filters: '
+        for filterType in collection.data.keys():
+            text += f'{filterType}, '
 
         await ctxt.send(f'```{text}```')
 
 
 @client.group(pass_context=True, aliases=['m'])
-async def monitor(ctxt):
+async def monitorCMD(ctxt):
     if ctxt.invoked_subcommand is None:
         await ctxt.send('Invalid sub command...  😕')
 
 
-@monitor.command(help=': Create monitor', aliases=['c'])
-async def create(ctxt, collection, *args):
+@monitorCMD.command(help=': Create monitor', aliases=['c'])
+async def create(ctxt, collectionId: str, *args):
     await ctxt.send('On it!')
 
     kwargs = parse_kwargs(args)
-    text = create_monitor(collection, **kwargs)
+    text = create_monitor(collectionId, **kwargs)
 
     await ctxt.send(text)
 
 
-@monitor.command(help=''': Remove monitor''', aliases=['r', 'd'])
+@monitorCMD.command(help=''': Remove monitor''', aliases=['r', 'd'])
 async def delete(ctxt, id):
     text = delete_monitor(id)
     await ctxt.send(text)
 
 
-@monitor.command(help=''': Change filters''', aliases=['change'])
-async def set(ctxt, id, *args):
-    kwargs = parse_kwargs(args)
+# @monitorCMD.command(help=''': Change filters''', aliases=['change'])
+# async def set(ctxt, id, *args):
+#     kwargs = parse_kwargs(args)
 
-    id = int(id)
+#     id = int(id)
 
-    monitors[id].set_filters(**kwargs)
+#     monitors[id].set_filters(**kwargs)
 
-    text = f'New filters for {id} are: '
-    for filter_, value in monitors[id].filters.items():
-        text += f'\n - {filter_}: {value}'
+#     text = f'New filters for {id} are: '
+#     for filter_, value in monitors[id].filters.items():
+#         text += f'\n - {filter_}: {value}'
 
-    await ctxt.send(f'```{text}```')
+#     await ctxt.send(f'```{text}```')
 
 
 @tasks.loop(seconds=int(MAINLOOP_TIME))

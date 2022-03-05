@@ -21,14 +21,15 @@ Classes:
 * PageTuple \n
     Half, for grouping simillar pages together
 * Collection \n
-    Interface, stores data about collection, access to some handy functions
+    Interface, stores data about collection, access to some handy Callables
 
 """
 
 import requests
-from crossplatform import exceptions
-from crossplatform.types import MarketPageAPIs
-from typing import List, Dict
+
+import crossplatform.core_exceptions as core_exceptions
+from crossplatform.core_types import MarketPageAPIs 
+from typing import List, Dict, Callable
 
 
 REC_LIM = 5
@@ -94,6 +95,9 @@ class Snapshot:
 
         return Snapshot(final_list, final_ids)
 
+    def isEmpty(self) -> bool:
+        return not len(self.list) 
+
 
 class Collection:
     """
@@ -116,8 +120,10 @@ class Collection:
         self.ranks = ranks
 
     def get_rank(self, nftId: str) -> int:
+        nftId = nftId.split('#')[-1]
+
         if not nftId in self.ranks.keys():
-            raise exceptions.NotValidQuerry(f"{self.name}; {nftId}")
+            raise core_exceptions.NotValidQuerry(f"{self.name}; {nftId}")
 
         return self.ranks[nftId]
 
@@ -142,38 +148,38 @@ class Page:
 
     """
 
-    def __init__(self, url: str, apis: Dict[int, function] = None) -> None:
+    def __init__(self, url: str, apis: Dict[int, Callable] = None) -> None:
         self.url = f'{url}/'
         self.apis = apis
         self.collections = self._parse_collections()
     
-    def request(self) -> str: raise exceptions.NotInitialized("Page: request")
-    def parse(self, key: str): raise exceptions.NotInitialized("Page: parse")
+    def request(self) -> str: raise core_exceptions.NotInitialized("Page: request")
+    def parse(self, key: str): raise core_exceptions.NotInitialized("Page: parse")
     
 # private: 
-    def _parse_collections(self) -> List[str]: raise exceptions.NotInitialized("Page: _parse_collections")
+    def _parse_collections(self) -> List[str]: raise core_exceptions.NotInitialized("Page: _parse_collections")
     def _check_collection(self, collectionId: str): return collectionId in self.collections
 
 
 class MarketPage(Page):
-    def __init__(self, url: str, apis: Dict[int, function] = None) -> None:
+    def __init__(self, url: str, apis: Dict[int, Callable] = None) -> None:
         super().__init__(url, apis)
 
-    def get_snapshot(self, collectionId: str) -> Snapshot: raise exceptions.NotInitialized("MarketPage: get_snapshot")
+    def get_snapshot(self, collectionId: str) -> Snapshot: raise core_exceptions.NotInitialized("MarketPage: get_snapshot")
 
 
 class RankPage(Page):
-    def __init__(self, url: str, apis: Dict[int, function] = None) -> None:
+    def __init__(self, url: str, apis: Dict[int, Callable] = None) -> None:
         super().__init__(url, apis)
 
-        self.collections_data = None # dict [collectionId, collection obj]
+        self.collections_data = { } # dict [collectionId, collection obj]
 
     def get_rank(self, collection: str or Collection, nftId: str) -> int: 
         if type(collection) == Collection: # use the passed collection
             return collection.get_rank(nftId)
         
         if not collection in self.collections:
-            raise exceptions.NotValidQuerry(collection)
+            raise core_exceptions.NotValidQuerry(collection)
 
         if not collection in self.collections_data.keys(): # get collection from local storage
             coll_data = self.get_collection_data(collection)
@@ -186,7 +192,7 @@ class RankPage(Page):
     def get_collection_data(self, collectionId: str) -> Collection:
         # get collection object from id
         if not collectionId in self.collections:
-            raise exceptions.NotValidQuerry(collectionId)
+            raise core_exceptions.NotValidQuerry(collectionId)
         
         if collectionId in self.collections_data.keys():
             return self.collections_data[collectionId]

@@ -10,6 +10,7 @@ class MarketPageAPIs(enum.Enum):
     collection_floor = 1
     collection_info = 2
     snapshot_query = 3
+    nft_querry = 4
 
 class RankPageAPIs(enum.Enum):
     all_collections = 0

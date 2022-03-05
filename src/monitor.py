@@ -1,8 +1,9 @@
 # import solanart
 import meden
-from crossplatform import core, exceptions, types
+from crossplatform import core, core_types
+from crossplatform import core_exceptions as errors
 
-from typing import List, Tuple, Dict
+from typing import List, Dict
 
 
 class FilterData:
@@ -10,12 +11,11 @@ class FilterData:
         result = {}
 
         for key, value in kwargs.items():
-            if key in types.NFTFilters.__dict__.keys():
-                filter_dict = types.NFTFilters.__dict__[key]
-                result += {
-                    filter_dict["id"]: # id of the attribute in NFT class
-                    lambda nft_value: filter_dict["func"](value, nft_value) # function for checking the value
-                }
+            if key in core_types.NFTFilters.__dict__.keys():
+                filter_dict = core_types.NFTFilters.__dict__[key].value
+                result[filter_dict["id"]] = lambda nft_value: filter_dict["func"](value, nft_value)
+                 # id of the attribute in NFT class 
+                 # function for checking the value
 
         self.data = result # dict of "nft_att": "filter_func"(value)
 
@@ -34,13 +34,13 @@ class CollectionData:
             valid = True
             
             for att, filter_func in self.filterData.data.items():
-                valid &= filter_func(nft[att])
+                valid &= filter_func(nft.__dict__[att])
                 
                 if not valid:
                     break
 
             if valid:
-                result += nft
+                result.append(nft)
             
         return core.Snapshot(result)
 
@@ -52,27 +52,45 @@ class CollectionData:
 
 class Monitor:
     def __init__(self, marketPage: core.MarketPage) -> None:
-        self.collections = None
+        self.collections = []
+        self.collectionIds = {}
         self.marketPage = marketPage
 
-
     def update(self) -> Dict[str, core.Snapshot]:
-        if self.collections == None:
-            raise exceptions.General(f"There are no collections in {self} monitor")
+        if self.collections == []:
+            raise errors.General(f"There are no collections in {self} monitor")
 
         result = {}
 
         for collection in self.collections:
-            snapshot = core.MarketPage.get_snapshot(collection.id)
-            collection.update_snapshot(snapshot)
+            snapshot = self.marketPage.get_snapshot(collection.id)
+            snapshot = collection.update_snapshot(snapshot)
 
-            result += {collection["id"]: snapshot}
+            if snapshot.isEmpty():
+                continue
+
+            result[collection.id] = snapshot
 
         return result
 
-    # def set_filters(self, **filters) -> None:
-    #     "Cahnge nft filters"
-    #     self.filters = filters
+    def add_collection(self, collectionId: str, **filters) -> None:
+        if not self.marketPage._check_collection(collectionId):
+            raise errors.NotValidQuerry(f"CollectionID {collectionId}")
+
+        self.collectionIds[collectionId] = len(self.collections)
+        self.collections.append(CollectionData(collectionId, FilterData(**filters)))
+
+    def remove_collection(self, collectionId: str):
+        if not collectionId in self.collectionIds:
+            raise errors.NotValidQuerry(f"CollectionID {collectionId}")
+
+        collectionId, index = self.collectionIds.pop(collectionId)
+        self.collections.pop(index)
 
 
-# monitor = Monitor('cyberpharmacist', Background=10)
+# magiceden = meden.Magiceden()
+
+# monitor = Monitor(magiceden)
+# monitor.add_collection('blockparty', price=2, rank=600)
+
+# monitor.update()
