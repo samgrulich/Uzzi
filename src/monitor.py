@@ -84,8 +84,8 @@ class Monitor:
     def remove_collection(self, collectionId: str):
         if not collectionId in self.collectionIds:
             raise errors.NotValidQuerry(f"CollectionID {collectionId}")
-
-        collectionId, index = self.collectionIds.pop(collectionId)
+        
+        index = self.collectionIds.pop(collectionId)
         self.collections.pop(index)
 
 

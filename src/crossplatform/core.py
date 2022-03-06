@@ -36,7 +36,6 @@ REC_LIM = 5
 
 
 class NFT: pass
-class Collection: pass
 class Snapshot: pass
 
 class Page: pass
@@ -79,7 +78,7 @@ class Snapshot:
     Snapshot of active page on market page
     """
 
-    def __init__(self, data: List[NFT], ids: List[str] = None) -> None:
+    def __init__(self, data: List[NFT], ids: List[str] = None) -> None:        
         if not ids:
             ids = [nft.id for nft in data]
         
@@ -93,45 +92,12 @@ class Snapshot:
         final_ids = list(filter(lambda id: not id in other.ids, self.ids))
         final_list = [self.list[self.ids.index(id)] for id in final_ids]
 
+        # TODO: check the price update
+
         return Snapshot(final_list, final_ids)
 
     def isEmpty(self) -> bool:
         return not len(self.list) 
-
-
-class Collection:
-    """
-    Class used for nft collection parsing from web
-
-    Attributes
-    ----------
-    id : str
-        id of collection at marketplace
-
-    Methods
-    -------
-    get_snapshot() - get difference between the last snapshot and this one
-
-    """
-    def __init__(self, collectionId: str, name: str, ranks: Dict[str, int]) -> None:
-        self.id = collectionId
-        self.name = name
-        self.lastSnap = None
-        self.ranks = ranks
-
-    def get_rank(self, nftId: str) -> int:
-        nftId = nftId.split('#')[-1]
-
-        if not nftId in self.ranks.keys():
-            raise core_exceptions.NotValidQuerry(f"{self.name}; {nftId}")
-
-        return self.ranks[nftId]
-
-    def get_snapshot(self, newSnap: Snapshot) -> Snapshot: 
-        result = newSnap - self.lastSnap
-        self.lastSnap = newSnap 
-
-        return result
 
 
 class Page:
@@ -165,6 +131,8 @@ class MarketPage(Page):
     def __init__(self, url: str, apis: Dict[int, Callable] = None) -> None:
         super().__init__(url, apis)
 
+        self.lastSnap = { }
+
     def get_snapshot(self, collectionId: str) -> Snapshot: raise core_exceptions.NotInitialized("MarketPage: get_snapshot")
 
 
@@ -174,8 +142,8 @@ class RankPage(Page):
 
         self.collections_data = { } # dict [collectionId, collection obj]
 
-    def get_rank(self, collection: str or Collection, nftId: str) -> int: 
-        if type(collection) == Collection: # use the passed collection
+    def get_rank(self, collection: str or Dict, nftId: str) -> int: 
+        if type(collection) == dict: # use the passed collection
             return collection.get_rank(nftId)
         
         if not collection in self.collections:
@@ -186,10 +154,17 @@ class RankPage(Page):
         else:
             coll_data = self.collections_data[collection]
         
-        return coll_data.get_rank(nftId)
-        
+        def get_rank(nftId: str) -> int:
+            nftId = nftId.split('#')[-1]
 
-    def get_collection_data(self, collectionId: str) -> Collection:
+            # if not nftId in coll_data["ranks"].keys():
+            #     raise core_exceptions.NotValidQuerry(f"{coll_data["data"]["name"]}; {nftId}")
+
+            return coll_data["ranks"][nftId]
+
+        return get_rank(nftId)
+
+    def get_collection_data(self, collectionId: str) -> Dict:
         # get collection object from id
         if not collectionId in self.collections:
             raise core_exceptions.NotValidQuerry(collectionId)
@@ -202,5 +177,6 @@ class RankPage(Page):
 
         return collection
 
+
 # private: 
-    def _get_collection_data(self, collectionId: str) -> Collection: pass
+    def _get_collection_data(self, collectionId: str) -> Dict: pass

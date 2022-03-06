@@ -50,9 +50,9 @@ def create_monitor(collectionId: str, rankId: str, **filters) -> str:
     try:
         monitor.add_collection(collectionId, rankId, **filters)
     except errors.NotValidQuerry:
-        return f'' # not valid collection
+        return f'Not valid collection' # not valid collection
     
-    # monitor.update()
+    monitor.update()
 
     return f'Monitor for `{collectionId}` **created**, `{len(monitor.collections)}` collections'
 
@@ -69,7 +69,7 @@ def delete_monitor(id: str) -> str:
 async def update(channel):
     try:
         snapshots = monitor.update()
-    except errors.General:
+    except errors.General as e:
         return
 
     if not snapshots:
@@ -110,7 +110,7 @@ async def on_ready():
     channel = utils.get(client.get_all_channels(), name=CHANNEL)
 
     seconds = int(time.time()) % 10
-    time.sleep(seconds)
+    time.sleep(10 - seconds)
 
     main_loop.start(channel)
 
@@ -157,7 +157,7 @@ async def all(ctxt):
 
     for i, collection in enumerate(monitor.collections):
         text = f'Monitor at {i}, coll: {collection.id}, \n filters: '
-        for filterType in collection.data.keys():
+        for filterType in collection.filterData.data.keys():
             text += f'{filterType}, '
 
         await ctxt.send(f'```{text}```')
@@ -179,8 +179,8 @@ async def create(ctxt, collectionId: str, rankId: str, *args):
     await ctxt.send(text)
 
 
-@monitorCMD.command(help=''': Remove monitor''', aliases=['r', 'd'])
-async def delete(ctxt, id):
+@monitorCMD.command(help=''': Remove monitor''', aliases=['r', 'd', 'remove'])
+async def delete(ctxt, id: str):
     text = delete_monitor(id)
     await ctxt.send(text)
 

@@ -22,6 +22,7 @@ class Magiceden(core.MarketPage):
         if not self._check_collection(collectionId):
             raise Exception("Not valid collection")
 
+        # get collection data from internet
         url = self.apis[MarketPageAPIs.snapshot_query](collectionId)
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36'}
         response = requests.get(url, headers=headers)
@@ -48,7 +49,11 @@ class Magiceden(core.MarketPage):
             data
         ))
 
-        return core.Snapshot(nfts) 
+        newSnap = core.Snapshot(nfts)
+        result = (newSnap - self.lastSnap[collectionId]) if collectionId in self.lastSnap.keys() else core.Snapshot(nfts)
+        self.lastSnap[collectionId] = newSnap
+
+        return result
 
 # private:
     def _parse_collections(self) -> List[str]:
@@ -89,7 +94,7 @@ class Howrare(core.RankPage):
 
         return collections
 
-    def _get_collection_data(self, collectionId: str) -> core.Collection:
+    def _get_collection_data(self, collectionId: str) -> dict:
         # get collection ranks
         response = requests.get(self.apis[RankPageAPIs.collection_rate](collectionId))
 
@@ -100,4 +105,4 @@ class Howrare(core.RankPage):
 
         ranks = {nft_dict["link"].split('/')[-1] : nft_dict["rank"] for nft_dict in data["items"]} # extract id: rank dict from collection data
 
-        return core.Collection(collectionId, data["collection"], ranks)
+        return {"id": collectionId, "data": data["collection"], "ranks": ranks}
