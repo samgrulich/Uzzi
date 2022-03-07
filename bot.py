@@ -1,3 +1,4 @@
+import asyncio
 from discord.ext import commands, tasks
 from discord import utils, Embed
 
@@ -6,6 +7,7 @@ from dotenv import dotenv_values
 import os
 import sys
 import time
+import threading
 import random
 
 if not os.path.exists("src/"):
@@ -115,7 +117,14 @@ async def on_ready():
     seconds = int(time.time()) % 10
     time.sleep(10 - seconds)
 
-    main_loop.start(channel)
+        # def entrypoint(*params):
+        #     asyncio.run(discord_async_method(*params))
+
+        # t = threading.Thread(target=entrypoint, args=(param,), daemon=True)
+
+    main_loop_thread = threading.Thread(target=lambda: asyncio.run(main_loop(channel)))
+    main_loop_thread.start()
+    # main_loop.start(channel)
 
 
 @client.command(help=': Check bot\'s latency')
@@ -203,10 +212,17 @@ async def delete(ctxt, id: str):
 #     await ctxt.send(f'```{text}```')
 
 
-@tasks.loop(seconds=int(MAINLOOP_TIME))
+# @tasks.loop(seconds=int(MAINLOOP_TIME))
 async def main_loop(channel):
-    await update(channel)
-    print(f'Loop done {time.asctime()}')
+    while True:
+        try:
+            await update(channel)
+        except Exception as e:
+            print(e.args)
+
+        print(f'Loop done {time.asctime()}')
+        time.sleep(int(MAINLOOP_TIME))
 # endregion
+
 
 client.run(BOT_KEY)
