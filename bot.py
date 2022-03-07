@@ -71,6 +71,9 @@ async def update(channel):
         snapshots = monitor.update()
     except errors.General as e:
         return
+    except errors.NetworkError as e:
+        e.print()
+        return
 
     if not snapshots:
         return
