@@ -1,4 +1,5 @@
 import asyncio
+from email import message
 from discord.ext import commands, tasks
 from discord import utils, Embed
 
@@ -7,7 +8,7 @@ from dotenv import dotenv_values
 import os
 import sys
 import time
-import threading
+# import threading
 import random
 
 if not os.path.exists("src/"):
@@ -69,6 +70,10 @@ def delete_monitor(id: str) -> str:
 
 
 async def update(channel):
+    # e = Embed()
+    # e.description = "mainloop"
+    # await channel.send(embed=e)
+
     try:
         snapshots = monitor.update()
     except errors.General as e:
@@ -79,6 +84,8 @@ async def update(channel):
 
     if not snapshots:
         return
+
+    print("Found in collections: ", [key for key in snapshots.keys()])
 
     for collectionId, snapshot in snapshots.items():
         for nft in snapshot.list:
@@ -117,14 +124,7 @@ async def on_ready():
     seconds = int(time.time()) % 10
     time.sleep(10 - seconds)
 
-        # def entrypoint(*params):
-        #     asyncio.run(discord_async_method(*params))
-
-        # t = threading.Thread(target=entrypoint, args=(param,), daemon=True)
-
-    main_loop_thread = threading.Thread(target=lambda: asyncio.run(main_loop(channel)))
-    main_loop_thread.start()
-    # main_loop.start(channel)
+    main_loop.start(channel)
 
 
 @client.command(help=': Check bot\'s latency')
@@ -197,31 +197,14 @@ async def delete(ctxt, id: str):
     await ctxt.send(text)
 
 
-# @monitorCMD.command(help=''': Change filters''', aliases=['change'])
-# async def set(ctxt, id, *args):
-#     kwargs = parse_kwargs(args)
-
-#     id = int(id)
-
-#     monitors[id].set_filters(**kwargs)
-
-#     text = f'New filters for {id} are: '
-#     for filter_, value in monitors[id].filters.items():
-#         text += f'\n - {filter_}: {value}'
-
-#     await ctxt.send(f'```{text}```')
-
-
-# @tasks.loop(seconds=int(MAINLOOP_TIME))
+@tasks.loop(seconds=int(MAINLOOP_TIME))
 async def main_loop(channel):
-    while True:
-        try:
-            await update(channel)
-        except Exception as e:
-            print(e.args)
+    try:
+        await update(channel)
+    except Exception as e:
+        print(e.args)
 
-        print(f'Loop done {time.asctime()}')
-        time.sleep(int(MAINLOOP_TIME))
+    print(f'Loop done {time.asctime()}')
 # endregion
 
 
