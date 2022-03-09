@@ -1,4 +1,3 @@
-import asyncio
 from email import message
 from discord.ext import commands, tasks
 from discord import utils, Embed
@@ -8,7 +7,6 @@ from dotenv import dotenv_values
 import os
 import sys
 import time
-# import threading
 import random
 
 if not os.path.exists("src/"):
@@ -54,6 +52,8 @@ def create_monitor(collectionId: str, rankId: str, **filters) -> str:
         monitor.add_collection(collectionId, rankId, **filters)
     except errors.NotValidQuerry:
         return f'Not valid collection' # not valid collection
+    except errors.General as e:
+        return e.msg()
     
     monitor.update()
 
@@ -70,10 +70,6 @@ def delete_monitor(id: str) -> str:
 
 
 async def update(channel):
-    # e = Embed()
-    # e.description = "mainloop"
-    # await channel.send(embed=e)
-
     try:
         snapshots = monitor.update()
     except errors.General as e:
@@ -182,11 +178,11 @@ async def monitorCMD(ctxt):
 
 
 @monitorCMD.command(help=': Create monitor', aliases=['c'])
-async def create(ctxt, collectionId: str, rankId: str, *args):
+async def create(ctxt, collectionId: str, *args):
     await ctxt.send('On it!')
 
     kwargs = parse_kwargs(args)
-    text = create_monitor(collectionId, rankId, **kwargs)
+    text = create_monitor(collectionId, collectionId.replace("_", ""), **kwargs)
 
     await ctxt.send(text)
 

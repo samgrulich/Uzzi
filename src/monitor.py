@@ -78,6 +78,9 @@ class Monitor:
         if not self.marketPage._check_collection(collectionId):
             raise errors.NotValidQuerry(f"CollectionID {collectionId}")
 
+        if collectionId in self.collectionIds:
+            raise errors.General(f"Collection {collectionId} is already in monitor")
+
         self.collectionIds[collectionId] = len(self.collections)
         self.collections.append(CollectionData(collectionId, rankId, FilterData(**filters)))
 
