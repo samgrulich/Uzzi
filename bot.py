@@ -57,6 +57,8 @@ def create_monitor(collectionId: str, rankId: str, **filters) -> str:
     
     monitor.update()
 
+    print(f"Creatimng monitor for {collectionId}")
+
     return f'Monitor for `{collectionId}` **created**, `{len(monitor.collections)}` collections'
 
 
@@ -85,7 +87,7 @@ async def update(channel):
 
     for collectionId, snapshot in snapshots.items():
         for nft in snapshot.list:
-            info_string = f'''\
+            info_string = f'''@everyone
 (Magiceden)[{monitor.marketPage.apis[core_types.MarketPageAPIs.nft_querry](nft.token)}]
 Rank: {nft.rank}
 Name: {nft.name}
@@ -163,17 +165,19 @@ async def all(ctxt):
         await ctxt.send('No monitors!')
         return
 
-    for i, collection in enumerate(monitor.collections):
+    for i, collection in enumerate(monitor.collections.values()):
         text = f'Monitor at {i}, coll: {collection.id}, \n filters: '
         for filterType in collection.filterData.data.keys():
             text += f'{filterType}, '
 
+        print (collection)
         await ctxt.send(f'```{text}```')
 
 
 @client.group(pass_context=True, aliases=['m'])
 async def monitorCMD(ctxt):
     if ctxt.invoked_subcommand is None:
+        print('invalid subcommand for m')
         await ctxt.send('Invalid sub command...  😕')
 
 

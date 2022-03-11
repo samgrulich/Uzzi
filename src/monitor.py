@@ -53,7 +53,7 @@ class CollectionData:
 
 class Monitor:
     def __init__(self, marketPage: core.MarketPage) -> None:
-        self.collections = []
+        self.collections = {}
         self.collectionIds = {}
         self.marketPage = marketPage
 
@@ -63,7 +63,7 @@ class Monitor:
 
         result = {}
 
-        for collection in self.collections:
+        for collection in self.collections.values():
             snapshot = self.marketPage.get_snapshot(collection.id, collection.rankId)
             snapshot = collection.update_snapshot(snapshot)
 
@@ -82,7 +82,7 @@ class Monitor:
             raise errors.General(f"Collection {collectionId} is already in monitor")
 
         self.collectionIds[collectionId] = len(self.collections)
-        self.collections.append(CollectionData(collectionId, rankId, FilterData(**filters)))
+        self.collections[len(self.collections) + 1] = CollectionData(collectionId, rankId, FilterData(**filters))
 
     def remove_collection(self, collectionId: str):
         if not collectionId in self.collectionIds:

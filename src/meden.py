@@ -1,9 +1,17 @@
+from email import header
 import requests
 from typing import Dict, List
 
 from crossplatform import core, core_exceptions, network
 from crossplatform.core_types import MarketPageAPIs, RankPageAPIs
 
+
+headers = {
+    # 'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    # 'sec-fetch-dest': 'document',
+    'Accept-Encoding': 'identity',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36',
+}
 
 class Magiceden(core.MarketPage): 
     def __init__(self) -> None:
@@ -24,13 +32,10 @@ class Magiceden(core.MarketPage):
 
         # get collection data from internet
         url = self.apis[MarketPageAPIs.snapshot_query](collectionId)
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36'
-        }
 
         response = network.recursive_get(url, limit=3, pause=0, headers=headers)        
 
-        if response.status_code != 200:
+        if response.status_code != 200 and (response.status_code > 399 or response.status_code < 300):
             raise core_exceptions.NetworkError(f"Couldn't reach collection, code: {response.status_code}, url: {url}")
 
         data = response.json()["results"]
@@ -53,21 +58,18 @@ class Magiceden(core.MarketPage):
         ))
 
         newSnap = core.Snapshot(nfts)
-        result = (newSnap - self.lastSnap[collectionId]) if collectionId in self.lastSnap.keys() else core.Snapshot(nfts)
         self.lastSnap[collectionId] = newSnap
+        result = (newSnap - self.lastSnap[collectionId]) if collectionId in self.lastSnap.keys() else newSnap
 
         return result
 
 # private:
     def _parse_collections(self) -> List[str]:
         url = self.apis[MarketPageAPIs.all_collections]()
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36'
-        }
 
         response = network.recursive_get(url, limit=3, headers=headers)        
 
-        if response.status_code != 200:
+        if response.status_code != 200 and (response.status_code > 399 or response.status_code < 300) :
             raise core_exceptions.NetworkError(f"Couldn't reach all market collections, code: {response.status_code}, url: {url}")
 
         data = response.json()["collections"] # list of dictionaries
@@ -89,13 +91,10 @@ class Howrare(core.RankPage):
 # private: 
     def _parse_collections(self) -> List[str]:
         url = self.apis[RankPageAPIs.all_collections]()
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36'
-        }
 
         response = network.recursive_get(url, limit=3, headers=headers)
 
-        if response.status_code != 200:
+        if response.status_code != 200 and (response.status_code > 399 or response.status_code < 300) :
             raise core_exceptions.NetworkError(f"Couldn't reach all rank collections, code: {response.status_code}, url: {url}")
 
         data = response.json()["result"]["data"] # list of dictionaries
@@ -105,9 +104,9 @@ class Howrare(core.RankPage):
 
     def _get_collection_data(self, collectionId: str) -> dict:
         # get collection ranks
-        response = requests.get(self.apis[RankPageAPIs.collection_rate](collectionId))
+        response = requests.get(self.apis[RankPageAPIs.collection_rate](collectionId), headers=headers)
 
-        if response.status_code != 200:
+        if response.status_code != 200 and (response.status_code > 399 or response.status_code < 300) :
             raise core_exceptions.NetworkError("collection request failed")
 
         data = response.json()["result"]["data"]
