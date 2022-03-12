@@ -79,6 +79,9 @@ class Snapshot:
     """
 
     def __init__(self, data: List[NFT], ids: List[str] = None) -> None:        
+        if not len(data):
+            ids = []
+        
         if not ids:
             ids = [nft.id for nft in data]
         
@@ -89,12 +92,12 @@ class Snapshot:
         """
         Get the difference between two Snapshots
         """
-        final_ids = list(filter(lambda id: not id in other.ids, self.ids))
-        final_list = [self.list[self.ids.index(id)] for id in final_ids]
+        idsFinal = list(filter(lambda id: not id in other.ids, self.ids))
+        listFinal = [self.list[self.ids.index(id)] for id in idsFinal]
 
         # TODO: check the price update
 
-        return Snapshot(final_list, final_ids)
+        return Snapshot(listFinal, idsFinal)
 
     def isEmpty(self) -> bool:
         return not len(self.list) 
@@ -114,21 +117,23 @@ class Page:
 
     """
 
-    def __init__(self, url: str, apis: Dict[int, Callable] = None) -> None:
-        self.url = f'{url}/'
+    def __init__(self, url: str, apis: Dict[int, Callable] = { }) -> None:
+        self.url = f"{url}/" if not url[-1] == '/' else url 
         self.apis = apis
-        self.collections = self._parse_collections()
+
+        collections = self._parse_collections()
+        self.collections = collections if collections else []
     
     def request(self) -> str: raise core_exceptions.NotInitialized("Page: request")
     def parse(self, key: str): raise core_exceptions.NotInitialized("Page: parse")
     
 # private: 
     def _parse_collections(self) -> List[str]: raise core_exceptions.NotInitialized("Page: _parse_collections")
-    def _check_collection(self, collectionId: str): return collectionId in self.collections
+    def _check_collection(self, collectionID: str): return collectionID in self.collections
 
 
 class MarketPage(Page):
-    def __init__(self, url: str, apis: Dict[int, Callable] = None) -> None:
+    def __init__(self, url: str, apis: Dict[int, Callable] = { }) -> None:
         super().__init__(url, apis)
 
         self.lastSnap = { }
@@ -140,40 +145,36 @@ class RankPage(Page):
     def __init__(self, url: str, apis: Dict[int, Callable] = None) -> None:
         super().__init__(url, apis)
 
-        self.collections_data = { } # dict [collectionId, collection obj]
+        self.collectionsData = { } # dict [collectionId, collection obj]
 
     def get_rank(self, collection: str or Dict, nftId: str) -> int: 
         if type(collection) == dict: # use the passed collection
             return collection.get_rank(nftId)
+
+        coll_data = self.get_collection_data(collection)
         
-        if not collection in self.collections:
-            raise core_exceptions.NotValidQuerry(collection)
+        # TODO: check this func for errors
+        def get_rank(nftID: str) -> int:
+            nftID = nftID.split('#')[-1]
 
-        if not collection in self.collections_data.keys(): # get collection from local storage
-            coll_data = self.get_collection_data(collection)
-        else:
-            coll_data = self.collections_data[collection]
-        
-        def get_rank(nftId: str) -> int:
-            nftId = nftId.split('#')[-1]
+            if not nftID in coll_data["ranks"].keys():
+                collectionID = coll_data["data"]["name"]
+                raise core_exceptions.NotValidQuerry(f"{collectionID}; {nftID}")
 
-            # if not nftId in coll_data["ranks"].keys():
-            #     raise core_exceptions.NotValidQuerry(f"{coll_data["data"]["name"]}; {nftId}")
-
-            return coll_data["ranks"][nftId]
+            return coll_data["ranks"][nftID]
 
         return get_rank(nftId)
 
-    def get_collection_data(self, collectionId: str) -> Dict:
+    def get_collection_data(self, collectionID: str) -> Dict:
         # get collection object from id
-        if not collectionId in self.collections:
-            raise core_exceptions.NotValidQuerry(collectionId)
+        if not collectionID in self.collections:
+            raise core_exceptions.NotValidQuerry(collectionID)
         
-        if collectionId in self.collections_data.keys():
-            return self.collections_data[collectionId]
+        if collectionID in self.collectionsData.keys():
+            return self.collectionsData[collectionID]
 
-        collection = self._get_collection_data(collectionId)
-        self.collections_data[collectionId] = collection
+        collection = self._get_collection_data(collectionID)
+        self.collectionsData[collectionID] = collection
 
         return collection
 

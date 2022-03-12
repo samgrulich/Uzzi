@@ -52,8 +52,8 @@ def create_monitor(collectionId: str, rankId: str, **filters) -> str:
         monitor.add_collection(collectionId, rankId, **filters)
     except errors.NotValidQuerry:
         return f'Not valid collection' # not valid collection
-    except errors.General as e:
-        return e.msg()
+    except errors.CustomErr as e:
+        return e.what()
     
     monitor.update()
 
@@ -202,7 +202,7 @@ async def main_loop(channel):
     try:
         await update(channel)
     except Exception as e:
-        print(e.args)
+        print("Exception: ", e.args)
 
     print(f'Loop done {time.asctime()}')
 # endregion

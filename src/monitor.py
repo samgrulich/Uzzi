@@ -13,7 +13,7 @@ class FilterData:
         for key, value in kwargs.items():
             if key in core_types.NFTFilters.__dict__.keys():
                 filter_dict = core_types.NFTFilters.__dict__[key].value
-                result[filter_dict["id"]] = lambda nft_value: filter_dict["func"](value, nft_value)
+                result[filter_dict["id"]] = lambda nftValue: filter_dict["func"](value, nftValue)
                  # id of the attribute in NFT class 
                  # function for checking the value
 
@@ -21,12 +21,12 @@ class FilterData:
 
 
 class CollectionData:
-    def __init__(self, collectionId: str, rankId, filters: FilterData):
-        self.id = collectionId
-        self.rankId = rankId
+    def __init__(self, collectionID: str, rankID: str, filters: FilterData):
+        self.id = collectionID
+        self.rankID = rankID
         self.filterData = filters
 
-        self.lastSnapshot = None
+        self.lastSnapshot = core.Snapshot([], [])
 
     def filter_snapshot(self, snapshot: core.Snapshot) -> core.Snapshot:
         result = []
@@ -35,7 +35,7 @@ class CollectionData:
             valid = True
             
             for att, filter_func in self.filterData.data.items():
-                valid &= filter_func(nft.__dict__[att])
+                valid = valid and filter_func(nft.__dict__[att])
                 
                 if not valid:
                     break
@@ -47,24 +47,22 @@ class CollectionData:
 
     def update_snapshot(self, newSnapshot: core.Snapshot) -> core.Snapshot:
         self.lastSnapshot = self.filter_snapshot(newSnapshot)
-
         return self.lastSnapshot
 
 
 class Monitor:
     def __init__(self, marketPage: core.MarketPage) -> None:
-        self.collections = {}
-        self.collectionIds = {}
+        self.collections = {} # collectionID: CollectionData
         self.marketPage = marketPage
 
     def update(self) -> Dict[str, core.Snapshot]:
-        if self.collections == []:
+        if self.collections == {}:
             raise errors.General(f"There are no collections in {self} monitor")
 
         result = {}
 
         for collection in self.collections.values():
-            snapshot = self.marketPage.get_snapshot(collection.id, collection.rankId)
+            snapshot = self.marketPage.get_snapshot(collection.id, collection.rankID)
             snapshot = collection.update_snapshot(snapshot)
 
             if snapshot.isEmpty():
@@ -74,27 +72,18 @@ class Monitor:
 
         return result
 
-    def add_collection(self, collectionId: str, rankId: str, **filters) -> None:
-        if not self.marketPage._check_collection(collectionId):
-            raise errors.NotValidQuerry(f"CollectionID {collectionId}")
+    def add_collection(self, collectionID: str, rankID: str, **filters) -> None:
+        if not self.marketPage._check_collection(collectionID):
+            raise errors.NotValidQuerry(f"CollectionID {collectionID}")
 
-        if collectionId in self.collectionIds:
-            raise errors.General(f"Collection {collectionId} is already in monitor")
+        if collectionID in self.collections.keys():
+            raise errors.General(f"Collection {collectionID} is already in monitor")
 
-        self.collectionIds[collectionId] = len(self.collections)
-        self.collections[len(self.collections) + 1] = CollectionData(collectionId, rankId, FilterData(**filters))
+        self.collections[collectionID] = CollectionData(collectionID, rankID, FilterData(**filters))
 
-    def remove_collection(self, collectionId: str):
-        if not collectionId in self.collectionIds:
-            raise errors.NotValidQuerry(f"CollectionID {collectionId}")
+    def remove_collection(self, collectionID: str):
+        if not collectionID in self.collections:
+            raise errors.NotValidQuerry(f"CollectionID {collectionID}")
         
-        index = self.collectionIds.pop(collectionId)
-        self.collections.pop(index)
+        self.collections.pop(collectionID)
 
-
-# magiceden = meden.Magiceden()
-
-# monitor = Monitor(magiceden)
-# monitor.add_collection('blockparty', price=2, rank=600)
-
-# monitor.update()
