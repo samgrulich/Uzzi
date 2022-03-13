@@ -18,6 +18,7 @@ import meden
 from monitor import Monitor
 from crossplatform import core_exceptions as errors
 from crossplatform import core_types
+from crossplatform.debug import debug_print
 
 
 config = dotenv_values(sys.path[0] + '/.env')
@@ -53,12 +54,13 @@ def create_monitor(collectionId: str, rankId: str, **filters) -> str:
     except errors.NotValidQuerry:
         return f'Not valid collection' # not valid collection
     except errors.CustomErr as e:
-        return e.what()
+        debug_print(e.what(), "Bot")
+    except Exception as e:
+        debug_print(e, "Bot")
     
     monitor.update()
 
     print(f"Creatimng monitor for {collectionId}")
-
     return f'Monitor for `{collectionId}` **created**, `{len(monitor.collections)}` collections'
 
 
@@ -66,7 +68,11 @@ def delete_monitor(id: str) -> str:
     try:
         monitor.remove_collection(id)
     except errors.NotValidQuerry:
-        return f'' # not valid collection
+        return f'Not valid collection' # not valid collection
+    except errors.CustomErr as e:
+        debug_print(e.what(), "Bot")
+    except Exception as e:
+        debug_print(e, "Bot")
 
     return f'Monitor for `{id}` **deleted**'
 
@@ -74,18 +80,19 @@ def delete_monitor(id: str) -> str:
 async def update(channel):
     try:
         snapshots = monitor.update()
-    except errors.General as e:
-        return
-    except errors.NetworkError as e:
-        e.print()
-        return
+    except errors.NotValidQuerry:
+        return f'Not valid collection' # not valid collection
+    except errors.CustomErr as e:
+        debug_print(e.what(), "Bot")
+    except Exception as e:
+        debug_print(e, "Bot")
 
     if not snapshots:
         return
 
     print("Found in collections: ", [key for key in snapshots.keys()])
 
-    for collectionId, snapshot in snapshots.items():
+    for collectionID, snapshot in snapshots.items():
         for nft in snapshot.list:
             info_string = f'''@everyone
 (Magiceden)[{monitor.marketPage.apis[core_types.MarketPageAPIs.nft_querry](nft.token)}]
@@ -115,7 +122,7 @@ Attributes: \n'''
 # region
 @client.event
 async def on_ready():
-    print('Bot ready')
+    print(f'{time.asctime()} Bot ready')
 
     channel = utils.get(client.get_all_channels(), name=CHANNEL)
 
@@ -170,14 +177,14 @@ async def all(ctxt):
         for filterType in collection.filterData.data.keys():
             text += f'{filterType}, '
 
-        print (collection)
+        print("lall: ", collection.id)
         await ctxt.send(f'```{text}```')
 
 
 @client.group(pass_context=True, aliases=['m'])
 async def monitorCMD(ctxt):
     if ctxt.invoked_subcommand is None:
-        print('invalid subcommand for m')
+        debug_print('invalid subcommand for m', "Bot")
         await ctxt.send('Invalid sub command...  😕')
 
 
@@ -202,7 +209,7 @@ async def main_loop(channel):
     try:
         await update(channel)
     except Exception as e:
-        print("Exception: ", e.args)
+        debug_print(f"Exception: {e.args}", "Bot")
 
     print(f'Loop done {time.asctime()}')
 # endregion

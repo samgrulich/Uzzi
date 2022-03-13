@@ -5,6 +5,8 @@ from crossplatform import core_exceptions as errors
 
 from typing import List, Dict
 
+from crossplatform.debug import debug_print
+
 
 class FilterData:
     def __init__(self, **kwargs):
@@ -13,7 +15,7 @@ class FilterData:
         for key, value in kwargs.items():
             if key in core_types.NFTFilters.__dict__.keys():
                 filter_dict = core_types.NFTFilters.__dict__[key].value
-                result[filter_dict["id"]] = lambda nftValue: filter_dict["func"](value, nftValue)
+                result[filter_dict["id"]] = lambda nftValue: filter_dict["func"](float(value), float(nftValue))
                  # id of the attribute in NFT class 
                  # function for checking the value
 
@@ -30,7 +32,7 @@ class CollectionData:
 
     def filter_snapshot(self, snapshot: core.Snapshot) -> core.Snapshot:
         result = []
-        
+
         for nft in snapshot.list:
             valid = True
             
@@ -70,7 +72,9 @@ class Monitor:
 
             result[collection.id] = snapshot
 
-        print("Update result len: ", len(result))
+        if len(result):
+            debug_print(f"Update result len: {len(result)}", "Monitor")
+
         return result
 
     def add_collection(self, collectionID: str, rankID: str, **filters) -> None:

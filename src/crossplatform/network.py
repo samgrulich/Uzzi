@@ -1,8 +1,8 @@
-from logging import exception
-import traceback
-from urllib import response
 import requests
 import time
+
+from crossplatform.debug import debug_print
+
 
 def recursive_get(url: str, limit: int = 5, pause: float = 1, **kwargs) -> requests.Response:
     response = requests.get(url, **kwargs)
@@ -25,6 +25,7 @@ def safe_get(url: str, limit: int = 5, **kwargs) -> requests.Response:
         response = requests.get(url, **kwargs)
         loopCount += 1
 
-    print(f"finished with code: {response.status_code}")
+    if response.status_code != 200:
+        debug_print(f"finished with code: {response.status_code}, after: {loopCount} tries")
 
     return response

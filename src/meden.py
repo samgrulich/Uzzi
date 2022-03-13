@@ -1,5 +1,3 @@
-from email import header
-import requests
 from typing import Dict, List
 
 from crossplatform import core, core_exceptions, network

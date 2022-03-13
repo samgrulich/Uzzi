@@ -11,7 +11,7 @@ class CustomErr(Exception):
         for arg in self.args:
             result += arg
 
-        return result
+        return str(type(self)) + result
 
 class General(CustomErr):
     def __init__(self, *args: object) -> None:
