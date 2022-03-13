@@ -1,3 +1,5 @@
+from logging import exception
+import traceback
 from urllib import response
 import requests
 import time

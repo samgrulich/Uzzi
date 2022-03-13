@@ -70,6 +70,7 @@ class Monitor:
 
             result[collection.id] = snapshot
 
+        print("Update result len: ", len(result))
         return result
 
     def add_collection(self, collectionID: str, rankID: str, **filters) -> None:

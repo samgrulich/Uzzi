@@ -26,6 +26,8 @@ class Magiceden(core.MarketPage):
             } # apis  
             )
 
+        self.rankPage = Howrare()
+
     def get_snapshot(self, collectionID: str, rankID: str) -> core.Snapshot:
         if not self._check_collection(collectionID):
             raise Exception("Not valid collection")
@@ -40,8 +42,6 @@ class Magiceden(core.MarketPage):
             raise core_exceptions.NetworkError(f"Couldn't reach collection, code: {response.status_code}, url: {url}")
 
         data = response.json()["results"]
-
-        self.rankPage = Howrare()
 
         nfts = list(map(
             lambda nftDict : 
@@ -59,8 +59,10 @@ class Magiceden(core.MarketPage):
         ))
 
         newSnap = core.Snapshot(nfts)
+        lastSnap = self.lastSnap[collectionID] if collectionID in self.lastSnap.keys() else newSnap
+        result = newSnap - lastSnap
+        
         self.lastSnap[collectionID] = newSnap
-        result = (newSnap - self.lastSnap[collectionID]) if collectionID in self.lastSnap.keys() else newSnap
 
         return result
 
