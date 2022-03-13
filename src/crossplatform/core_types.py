@@ -2,8 +2,8 @@ import enum
 
 class NFTFilters(enum.Enum):
     attributes = {"id": "atts", "func": lambda _: True} 
-    price = {"id": "price", "func": lambda max, value: float(max) >= value}
-    rank = {"id": "rank", "func": lambda max, value: float(max) >= value}
+    price = {"id": "price", "func": lambda max, value: float(max) >= float(value)}
+    rank = {"id": "rank", "func": lambda max, value: float(max) >= float(value)}
 
 class MarketPageAPIs(enum.Enum):
     all_collections = 0

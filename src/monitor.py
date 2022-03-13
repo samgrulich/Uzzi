@@ -1,4 +1,3 @@
-# import solanart
 import meden
 from crossplatform import core, core_types
 from crossplatform import core_exceptions as errors
@@ -15,7 +14,7 @@ class FilterData:
         for key, value in kwargs.items():
             if key in core_types.NFTFilters.__dict__.keys():
                 filter_dict = core_types.NFTFilters.__dict__[key].value
-                result[filter_dict["id"]] = lambda nftValue: filter_dict["func"](float(value), float(nftValue))
+                result[filter_dict["id"]] = lambda nftValue, _value=value: (filter_dict["func"])(_value, nftValue)
                  # id of the attribute in NFT class 
                  # function for checking the value
 
