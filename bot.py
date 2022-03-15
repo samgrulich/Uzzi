@@ -55,8 +55,10 @@ def create_monitor(collectionId: str, rankId: str, **filters) -> str:
         return f'Not valid collection' # not valid collection
     except errors.CustomErr as e:
         debug_print(e.what(), "Bot")
+        return f'err custom'
     except Exception as e:
         debug_print(e, "Bot")
+        return f'err other'
     
     monitor.update()
 
@@ -71,8 +73,10 @@ def delete_monitor(id: str) -> str:
         return f'Not valid collection' # not valid collection
     except errors.CustomErr as e:
         debug_print(e.what(), "Bot")
+        return f'err custom'
     except Exception as e:
         debug_print(e, "Bot")
+        return f'erro other'
 
     return f'Monitor for `{id}` **deleted**'
 
@@ -80,12 +84,12 @@ def delete_monitor(id: str) -> str:
 async def update(channel):
     try:
         snapshots = monitor.update()
-    except errors.NotValidQuerry:
-        return f'Not valid collection' # not valid collection
     except errors.CustomErr as e:
         debug_print(e.what(), "Bot")
+        return
     except Exception as e:
         debug_print(e, "Bot")
+        return
 
     if not snapshots:
         return

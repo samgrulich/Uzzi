@@ -19,7 +19,7 @@ class Magiceden(core.MarketPage):
                 MarketPageAPIs.all_collections: lambda: "https://api-mainnet.magiceden.io/all_collections?edge_cache=true",
                 MarketPageAPIs.collection_floor: lambda collection: f"https://api-mainnet.magiceden.io/rpc/getCollectionEscrowStats/{collection}?edge_cache=true",
                 MarketPageAPIs.collection_info: lambda collection: f"https://api-mainnet.magiceden.io/collections/{collection}?edge_cache=true",
-                MarketPageAPIs.snapshot_query: lambda collection: 'https://api-mainnet.magiceden.io/rpc/getListedNFTsByQuery?q={"$match":{"collectionSymbol":"' + collection + '"},"$sort":{"createdAt":-1},"$skip":0,"$limit":20}',
+                MarketPageAPIs.snapshot_query: lambda collection: 'https://api-mainnet.magiceden.io/rpc/getListedNFTsByQuery?q={"$match":{"collectionSymbol":"' + collection + '"},"$sort":{"createdAt":-1},"$skip":0,"$limit":2}',
                 MarketPageAPIs.nft_querry: lambda nftId: f"https://magiceden.io/item-details/{nftId}"
             } # apis  
             )
