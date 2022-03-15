@@ -1,4 +1,5 @@
 import meden
+import concurrent
 from crossplatform import core, core_types
 from crossplatform import core_exceptions as errors
 
@@ -60,21 +61,30 @@ class Monitor:
         if self.collections == {}:
             raise errors.General(f"There are no collections in {self} monitor")
 
-        result = {}
+        futures = []
 
-        for collection in self.collections.values():
-            snapshot = self.marketPage.get_snapshot(collection.id, collection.rankID)
-            snapshot = collection.update_snapshot(snapshot)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(self.update_collection, collection) for collection in self.collections.values()]
+
+        result = {}
+        for i, future in enumerate(futures):
+            snapshot = future.result()
 
             if snapshot.isEmpty():
                 continue
 
-            result[collection.id] = snapshot
+            result[self.collections.keys()[i]] = snapshot
 
         if len(result):
             debug_print(f"Update result len: {len(result)}", "Monitor")
 
         return result
+
+    def update_collection(self, collection: CollectionData) -> core.Snapshot:
+        snapshot = self.marketPage.get_snapshot(collection.id, collection.rankID)
+        snapshot = collection.update_snapshot(snapshot)
+
+        return snapshot
 
     def add_collection(self, collectionID: str, rankID: str, **filters) -> None:
         if not self.marketPage._check_collection(collectionID):

@@ -25,8 +25,6 @@ Classes:
 
 """
 
-import requests
-
 import crossplatform.core_exceptions as core_exceptions
 from crossplatform.core_types import MarketPageAPIs 
 from typing import List, Dict, Callable

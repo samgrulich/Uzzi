@@ -41,4 +41,15 @@ def main():
 
     print('done')
 
-main()
+def load_proxies(file_path: str):
+    proxies = []
+
+    with open(file_path, "r") as f:
+        for line in f.readlines():
+            proxies.append(line[:-1]) 
+        
+    print(proxies)
+
+#main()
+
+load_proxies("proxies.txt")

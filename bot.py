@@ -17,7 +17,7 @@ sys.path.append("src/")
 import meden
 from monitor import Monitor
 from crossplatform import core_exceptions as errors
-from crossplatform import core_types
+from crossplatform import core_types, network
 from crossplatform.debug import debug_print
 
 
@@ -26,11 +26,13 @@ BOT_KEY = config['key']
 CHANNEL = config['channel']
 MAINLOOP_TIME = config['interval']
 
-client = commands.Bot(command_prefix='.')
+
+network.load_proxies("proxies.txt")
 
 magiceden = meden.Magiceden()
 monitor = Monitor(magiceden)
 
+client = commands.Bot(command_prefix='.')
 
 
 # Functions
