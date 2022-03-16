@@ -1,3 +1,4 @@
+from urllib import response
 import requests
 
 def request(url:str, **kwargs):
@@ -28,16 +29,30 @@ headers = {
 
 def main():
     print("listing magiceden")
-    for url in magicedenAPIS:
-        response1 = request(url, headers=headers)
-        response2 = request(url)
-        print("response1: ", response1.status_code, ", response2: ", response2.status_code)
+    # for url in magicedenAPIS:
+    #     response1 = request(url, headers=headers)
+    #     response2 = request(url)
+    #     print("response1: ", response1.status_code, ", response2: ", response2.status_code)
     
-    print("listing howrare")
-    for url in howrareAPIS:
-        response1 = request(url, headers=headers)
-        response2 = request(url)
-        print("response1: ", response1.status_code, ", response2: ", response2.status_code)
+    response = requests.get(magicedenAPIS[-1], headers=headers)
+    loopcount = 0
+
+    while response.status_code == 200:
+        response = requests.get(magicedenAPIS[loopcount % len(magicedenAPIS)], headers=headers)
+        loopcount += 1
+
+        if response.status_code == 429:
+            print("x")
+
+        print(f"loop done: {loopcount}, code: {response.status_code}")
+
+    print(f"code: {response.status_code}, loops: {loopcount}")
+
+    # print("listing howrare")
+    # for url in howrareAPIS:
+    #     response1 = request(url, headers=headers)
+    #     response2 = request(url)
+    #     print("response1: ", response1.status_code, ", response2: ", response2.status_code)
 
     print('done')
 
@@ -50,6 +65,6 @@ def load_proxies(file_path: str):
         
     print(proxies)
 
-#main()
+main()
 
-load_proxies("proxies.txt")
+# load_proxies("proxies.txt")
