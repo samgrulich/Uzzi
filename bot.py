@@ -1,4 +1,3 @@
-from email import message
 from discord.ext import commands, tasks
 from discord import utils, Embed
 
@@ -9,6 +8,7 @@ import sys
 import time
 import random
 
+
 if not os.path.exists("src/"):
     raise Exception("Uzzi module not found")
 
@@ -17,7 +17,7 @@ sys.path.append("src/")
 import meden
 from monitor import Monitor
 from crossplatform import core_exceptions as errors
-from crossplatform import core_types
+from crossplatform import core_types, network
 from crossplatform.debug import debug_print
 
 
@@ -25,6 +25,8 @@ config = dotenv_values(sys.path[0] + '/.env')
 BOT_KEY = config['key']
 CHANNEL = config['channel']
 MAINLOOP_TIME = config['interval']
+
+network.load_proxies("proxies.txt")
 
 client = commands.Bot(command_prefix='.')
 
@@ -208,7 +210,7 @@ async def delete(ctxt, id: str):
     await ctxt.send(text)
 
 
-@tasks.loop(seconds=int(MAINLOOP_TIME))
+@tasks.loop(seconds=int(1))
 async def main_loop(channel):
     try:
         await update(channel)

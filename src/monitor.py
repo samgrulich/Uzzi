@@ -1,5 +1,6 @@
 import meden
-from crossplatform import core, core_types
+import time
+from crossplatform import core, core_types, network
 from crossplatform import core_exceptions as errors
 
 from typing import List, Dict
@@ -60,9 +61,10 @@ class Monitor:
         if self.collections == {}:
             raise errors.General(f"There are no collections in {self} monitor")
 
+        startTime = time.time_ns()
         result = {}
 
-        for collection in self.collections.values():
+        for i, collection in enumerate(self.collections.values()):
             snapshot = self.marketPage.get_snapshot(collection.id, collection.rankID)
             snapshot = collection.update_snapshot(snapshot)
 
@@ -70,6 +72,13 @@ class Monitor:
                 continue
 
             result[collection.id] = snapshot
+
+        # limit to 2 QPS
+        deltaTime = time.time_ns() - startTime
+
+        if deltaTime < 10e9 / (2 * len(network.proxies)):
+            time.sleep((10e9 / (2 * len(network.proxies)) - deltaTime) / 10e9)
+            print("wainting for ", (10e9 / (2 * len(network.proxies)) - deltaTime) / 10e9, " seconds")
 
         if len(result):
             debug_print(f"Update result len: {len(result)}", "Monitor")
