@@ -68,17 +68,19 @@ class Monitor:
             snapshot = self.marketPage.get_snapshot(collection.id, collection.rankID)
             snapshot = collection.update_snapshot(snapshot)
 
+            if not i % 2:
+                # limit to 2 QPS
+                deltaTime = time.time_ns() - startTime
+                interval = 10e9 #/ (1 * len(network.proxies)) # there may be 2 instead of 1
+
+                if deltaTime < interval:
+                    time.sleep(interval / 10e9)
+                    print("wainting for ", interval / 10e9, " seconds")
+
             if snapshot.isEmpty():
                 continue
 
             result[collection.id] = snapshot
-
-        # limit to 2 QPS
-        deltaTime = time.time_ns() - startTime
-
-        if deltaTime < 10e9 / (2 * len(network.proxies)):
-            time.sleep((10e9 / (2 * len(network.proxies)) - deltaTime) / 10e9)
-            print("wainting for ", (10e9 / (2 * len(network.proxies)) - deltaTime) / 10e9, " seconds")
 
         if len(result):
             debug_print(f"Update result len: {len(result)}", "Monitor")

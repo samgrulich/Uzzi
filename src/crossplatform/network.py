@@ -74,7 +74,10 @@ def proxy_request(url: str, **kwargs) -> requests.Response:
 
     with threading.Lock():
         requestCount += 1
-        
+    
+    print("requesting ", url)
+    print("  with proxy: ", proxy["http"])
+
     return requests.get(url, proxies=proxy, **kwargs)
 
 
