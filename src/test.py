@@ -48,6 +48,15 @@ def main():
 
     print('done')
 
-network.load_proxies("proxies.txt")
-main()
+# network.load_proxies("proxies.txt")
+# main()
+
+for i in range(10):
+    startTime = time.time_ns()
+
+    time.sleep(i)
+
+    deltaTime = time.time_ns() - startTime
+
+    print(deltaTime)
 

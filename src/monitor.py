@@ -1,3 +1,4 @@
+import asyncio
 import meden
 import time
 from crossplatform import core, core_types, network
@@ -71,12 +72,13 @@ class Monitor:
         self.collections = {}  # collectionID: CollectionData
         self.marketPage = marketPage
 
-    def update(self) -> Dict[str, core.Snapshot]:
+    async def update(self) -> Dict[str, core.Snapshot]:
         if self.collections == {}:
             raise errors.General(f"There are no collections in {self} monitor")
 
-        startTime = time.time_ns()
         result = {}
+        startTime = time.time_ns()
+        loopTime = time.time_ns()
 
         for i, collection in enumerate(self.collections.values()):
             snapshot = self.marketPage.get_snapshot(
@@ -85,21 +87,24 @@ class Monitor:
 
             if not i % 2:
                 # limit to 2 QPS
-                deltaTime = time.time_ns() - startTime
-                # interval = 10e9 / (2 * len(network.proxies))
-                interval = 10e9 / 2
-                waitInterval = (interval - deltaTime) / 10e9
+                now = time.time_ns()
+                deltaTime = now - startTime
+                # interval = 1e9 / (len(network.proxies))
+                interval = 1e9 
+                waitInterval = (interval - deltaTime) / 1e9
 
                 if deltaTime < interval:
                     print("wainting for ", waitInterval, " seconds")
-                    time.sleep(waitInterval)
-
+                    await asyncio.sleep(waitInterval)
+                
                 startTime = time.time_ns()
 
             if snapshot.isEmpty():
                 continue
 
             result[collection.id] = snapshot
+        
+        print("Total loop time is ", (time.time_ns() - loopTime) / 1e9, " s")
 
         if len(result):
             debug_print(f"Update result len: {len(result)}", "Monitor")
@@ -129,7 +134,7 @@ class Monitor:
                 if rawLine[0] == ';':
                     continue
                 
-                rawLine = rawLine[:-1]
+                rawLine = rawLine.replace('\n', '')
                 splitLine = rawLine.split(' ')
 
                 collectionID = splitLine[0]
