@@ -1,8 +1,7 @@
-from urllib import response
+import time
 import requests
+from crossplatform import network
 
-def request(url:str, **kwargs):
-    return requests.get(url, **kwargs)
 
 magicedenAPIS = \
 [
@@ -28,43 +27,36 @@ headers = {
 }
 
 def main():
-    print("listing magiceden")
-    # for url in magicedenAPIS:
-    #     response1 = request(url, headers=headers)
-    #     response2 = request(url)
-    #     print("response1: ", response1.status_code, ", response2: ", response2.status_code)
-    
-    response = requests.get(magicedenAPIS[-1], headers=headers)
-    loopcount = 0
+    print("requesting meden")
+    collectionData = requests.get(magicedenAPIS[0], headers=headers).json()["collections"]
+    collections = [collection["symbol"] for collection in collectionData[:20]]
 
-    while response.status_code == 200:
-        response = requests.get(magicedenAPIS[loopcount % len(magicedenAPIS)], headers=headers)
-        loopcount += 1
 
-        if response.status_code == 429:
-            print("x")
+    for i in range(100):
+        
+        for i, collection in enumerate(collections):
+            startTime = time.time_ns()
+            url = 'https://api-mainnet.magiceden.io/rpc/getListedNFTsByQuery?q={"$match":{"collectionSymbol":"' + collection + '"},"$sort":{"createdAt":-1},"$skip":0,"$limit":20}'
 
-        print(f"loop done: {loopcount}, code: {response.status_code}")
+            response1 = requests.get(url, headers=headers)
+            response2 = network.safe_get(url, headers=headers)
 
-    print(f"code: {response.status_code}, loops: {loopcount}")
+            if response1.status_code != 200 or response2.status_code != 200:
+                print("response1: ", response1.status_code, ", response2: ", response2.status_code)
 
-    # print("listing howrare")
-    # for url in howrareAPIS:
-    #     response1 = request(url, headers=headers)
-    #     response2 = request(url)
-    #     print("response1: ", response1.status_code, ", response2: ", response2.status_code)
+            print("delta time: ", (time.time_ns() - startTime) / 10e9, " s, ", i)
 
     print('done')
 
-def load_proxies(file_path: str):
-    proxies = []
+# network.load_proxies("proxies.txt")
+# main()
 
-    with open(file_path, "r") as f:
-        for line in f.readlines():
-            proxies.append(line[:-1]) 
-        
-    print(proxies)
+for i in range(10):
+    startTime = time.time_ns()
 
-main()
+    time.sleep(i)
 
-# load_proxies("proxies.txt")
+    deltaTime = time.time_ns() - startTime
+
+    print(deltaTime)
+

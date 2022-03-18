@@ -1,4 +1,3 @@
-from email import message
 from discord.ext import commands, tasks
 from discord import utils, Embed
 
@@ -9,30 +8,30 @@ import sys
 import time
 import random
 
+
 if not os.path.exists("src/"):
     raise Exception("Uzzi module not found")
 
 sys.path.append("src/")
 
 import meden
-from monitor import Monitor
-from crossplatform import core_exceptions as errors
-from crossplatform import core_types, network
 from crossplatform.debug import debug_print
-
+from crossplatform import core_types, network
+from crossplatform import core_exceptions as errors
+from monitor import Monitor
 
 config = dotenv_values(sys.path[0] + '/.env')
 BOT_KEY = config['key']
 CHANNEL = config['channel']
 MAINLOOP_TIME = config['interval']
 
-
 network.load_proxies("proxies.txt")
+
+client = commands.Bot(command_prefix='.')
 
 magiceden = meden.Magiceden()
 monitor = Monitor(magiceden)
-
-client = commands.Bot(command_prefix='.')
+monitor.load_collections("collections.txt")
 
 
 # Functions
@@ -50,19 +49,19 @@ def parse_kwargs(args) -> dict:
     return kwargs
 
 
-def create_monitor(collectionId: str, rankId: str, **filters) -> str:
+async def create_monitor(collectionId: str, rankId: str, **filters) -> str:
     try:
         monitor.add_collection(collectionId, rankId, **filters)
     except errors.NotValidQuerry:
-        return f'Not valid collection' # not valid collection
+        return f'Not valid collection'  # not valid collection
     except errors.CustomErr as e:
         debug_print(e.what(), "Bot")
         return f'err custom'
     except Exception as e:
         debug_print(e, "Bot")
         return f'err other'
-    
-    monitor.update()
+
+    await monitor.update()
 
     print(f"Creatimng monitor for {collectionId}")
     return f'Monitor for `{collectionId}` **created**, `{len(monitor.collections)}` collections'
@@ -72,7 +71,7 @@ def delete_monitor(id: str) -> str:
     try:
         monitor.remove_collection(id)
     except errors.NotValidQuerry:
-        return f'Not valid collection' # not valid collection
+        return f'Not valid collection'  # not valid collection
     except errors.CustomErr as e:
         debug_print(e.what(), "Bot")
         return f'err custom'
@@ -85,7 +84,7 @@ def delete_monitor(id: str) -> str:
 
 async def update(channel):
     try:
-        snapshots = monitor.update()
+        snapshots = await monitor.update()
     except errors.CustomErr as e:
         debug_print(e.what(), "Bot")
         return
@@ -199,7 +198,8 @@ async def create(ctxt, collectionId: str, *args):
     await ctxt.send('On it!')
 
     kwargs = parse_kwargs(args)
-    text = create_monitor(collectionId, collectionId.replace("_", ""), **kwargs)
+    text = await create_monitor(
+        collectionId, collectionId.replace("_", ""), **kwargs)
 
     await ctxt.send(text)
 
@@ -210,7 +210,7 @@ async def delete(ctxt, id: str):
     await ctxt.send(text)
 
 
-@tasks.loop(seconds=int(MAINLOOP_TIME))
+@tasks.loop(seconds=int(1))
 async def main_loop(channel):
     try:
         await update(channel)
