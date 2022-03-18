@@ -33,8 +33,6 @@ class Magiceden(core.MarketPage):
         # get collection data from internet
         url = self.apis[MarketPageAPIs.snapshot_query](collectionID)
         response = network.safe_get(url, headers=headers)
-        # response = requests.get(url, headers=headers)
-        # response = network.recursive_get(url, limit=3, pause=0, headers=headers)        
 
         if response.status_code != 200 and (response.status_code > 399 or response.status_code < 300):
             raise core_exceptions.NetworkError(f"Couldn't reach collection, code: {response.status_code}, url: {url}")
@@ -68,8 +66,6 @@ class Magiceden(core.MarketPage):
     def _parse_collections(self) -> List[str]:
         url = self.apis[MarketPageAPIs.all_collections]()
         response = network.safe_get(url, headers=headers)
-        # response = requests.get(url, headers=headers)
-        # response = network.recursive_get(url, limit=3, headers=headers)        
 
         if response.status_code != 200 and (response.status_code > 399 or response.status_code < 300) :
             raise core_exceptions.NetworkError(f"Couldn't reach all market collections, code: {response.status_code}, url: {url}")
@@ -94,8 +90,6 @@ class Howrare(core.RankPage):
     def _parse_collections(self) -> List[str]:
         url = self.apis[RankPageAPIs.all_collections]()
         response = network.safe_get(url)
-        # response = requests.get(url)
-        # response = network.recursive_get(url, limit=3)
 
         if response.status_code != 200:
             raise core_exceptions.NetworkError(f"Couldn't reach all rank collections, code: {response.status_code}, url: {url}")
@@ -109,7 +103,6 @@ class Howrare(core.RankPage):
         # get collection ranks
         url = self.apis[RankPageAPIs.collection_rate](collectionID)
         response = network.safe_get(url)
-        # response = requests.get(url)
 
         if response.status_code != 200:
             raise core_exceptions.NetworkError("Howrare collection request failed")

@@ -32,11 +32,14 @@ def safe_get(url: str, limit: int = 5, **kwargs) -> requests.Response:
         response = proxy_request(url, **kwargs)
         
         if response.status_code == 429:
-            print(response)
-            wait_time = response.headers["Retry-After"]
-            wait_time = wait_time if wait_time else 1000
+            waitTime = int(response.headers["Retry-After"])
+            waitTime = waitTime if waitTime else 1
 
-            time.sleep(int(wait_time) / 1000)
+            for i in range(0, waitTime):
+                time.sleep(1)
+                
+                if not i % 15:
+                    print(f"{i}/{waitTime}")
 
         loopCount += 1
 
@@ -71,7 +74,7 @@ def proxy_request(url: str, **kwargs) -> requests.Response:
     global requestCount
 
     proxyIndex = requestCount % len(proxies)
-    proxy = proxies[proxyIndex]
+    session.proxies = proxies[proxyIndex]
 
     with threading.Lock():
         requestCount += 1
@@ -79,6 +82,6 @@ def proxy_request(url: str, **kwargs) -> requests.Response:
     # print("requesting ", url)
     # print("  with proxy: ", proxy["http"])
 
-    return requests.get(url, proxies=proxy, **kwargs)
+    return session.get(url, **kwargs)
 
 

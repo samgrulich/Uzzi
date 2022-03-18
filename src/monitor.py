@@ -71,11 +71,14 @@ class Monitor:
             if not i % 2:
                 # limit to 2 QPS
                 deltaTime = time.time_ns() - startTime
-                interval = 10e9 #/ (1 * len(network.proxies)) # there may be 2 instead of 1
+                interval = 10e9 / (2 * len(network.proxies)) # there may be 2 instead of 1
+                waitInterval = (interval - deltaTime) / 10e9
 
                 if deltaTime < interval:
-                    time.sleep(interval / 10e9)
-                    print("wainting for ", interval / 10e9, " seconds")
+                    print("wainting for ", waitInterval, " seconds")
+                    time.sleep(waitInterval)
+
+                startTime = time.time_ns()
 
             if snapshot.isEmpty():
                 continue
