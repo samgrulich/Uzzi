@@ -1,0 +1,19 @@
+.m c solderland_bunnies rank=1000 price=1.2
+.m c drippies rank=1000 price=2.1
+.m c solana_hodl_whales rank=1000 price=6
+.m c jambo_mambo rank=500 price=4.2
+.m c dazedducks_metagalactic_club rank=2000 price=6.7 -- not valid
+.m c quantum_traders rank=1000 price=7.5
+.m c solana_monke_rejects rank=2000 price=3.3
+.m c dronies rank=1000 price=1.8
+.m c mrn_s1_vikings_premium_drop rank=2000 price=2 -- not valid
+.m c panzerdogs rank=2000 price=3.2
+.m c bohemia_ rank=1000 price=5
+.m c danger_valley_ducks rank=2000 price=2.1
+.m c rudegolems rank=3000 price=3.5 -- not valid
+.m c artpunks rank=2000 price=5
+.m c astrals rank=1000 price=4.5
+.m c stylish_studs rank=7000 price=3.5
+.m c yaku_corp rank=1000 price=6
+.m c botborgs rank=1000 price=2.5
+.m c bobos_of_war rank=2000 price=2

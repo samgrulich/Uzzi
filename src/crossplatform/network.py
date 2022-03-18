@@ -11,6 +11,7 @@ proxies = [] # list of ip addresses in strings
 requestCount = 0
 session = requests.Session()
 
+
 def recursive_get(url: str, limit: int = 5, pause: float = 1, **kwargs) -> requests.Response:
     response = requests.get(url, **kwargs)
     loopCount = 0
@@ -83,5 +84,6 @@ def proxy_request(url: str, **kwargs) -> requests.Response:
     # print("  with proxy: ", proxy["http"])
 
     return session.get(url, **kwargs)
+
 
 

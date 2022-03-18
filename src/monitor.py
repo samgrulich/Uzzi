@@ -111,6 +111,12 @@ class Monitor:
 
         return result
 
+    def update_collection(self, collection: CollectionData) -> core.Snapshot:
+        snapshot = self.marketPage.get_snapshot(collection.id, collection.rankID)
+        snapshot = collection.update_snapshot(snapshot)
+
+        return snapshot
+
     def add_collection(self, collectionID: str, rankID: str, **filters) -> None:
         if not self.marketPage._check_collection(collectionID):
             raise errors.NotValidQuerry(f"CollectionID {collectionID}")
