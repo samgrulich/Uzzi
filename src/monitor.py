@@ -8,6 +8,19 @@ from typing import List, Dict
 from crossplatform.debug import debug_print
 
 
+def parse_kwargs(args) -> dict:
+    kwargs = {}
+
+    for arg in args:
+        string = str(arg)
+
+        if '=' in string:
+            key, value = string.split('=', 1)
+            kwargs[key] = value
+
+    return kwargs
+
+
 class FilterData:
     def __init__(self, **kwargs):
         result = {}
@@ -15,11 +28,12 @@ class FilterData:
         for key, value in kwargs.items():
             if key in core_types.NFTFilters.__dict__.keys():
                 filter_dict = core_types.NFTFilters.__dict__[key].value
-                result[filter_dict["id"]] = lambda nftValue, _value=value: (filter_dict["func"])(_value, nftValue)
-                 # id of the attribute in NFT class 
-                 # function for checking the value
+                result[filter_dict["id"]] = lambda nftValue, _value=value: (
+                    filter_dict["func"])(_value, nftValue)
+                # id of the attribute in NFT class
+                # function for checking the value
 
-        self.data = result # dict of "nft_att": "filter_func"(value)
+        self.data = result  # dict of "nft_att": "filter_func"(value)
 
 
 class CollectionData:
@@ -35,16 +49,16 @@ class CollectionData:
 
         for nft in snapshot.list:
             valid = True
-            
+
             for att, filter_func in self.filterData.data.items():
                 valid = valid and filter_func(nft.__dict__[att])
-                
+
                 if not valid:
                     break
 
             if valid:
                 result.append(nft)
-            
+
         return core.Snapshot(result)
 
     def update_snapshot(self, newSnapshot: core.Snapshot) -> core.Snapshot:
@@ -54,7 +68,7 @@ class CollectionData:
 
 class Monitor:
     def __init__(self, marketPage: core.MarketPage) -> None:
-        self.collections = {} # collectionID: CollectionData
+        self.collections = {}  # collectionID: CollectionData
         self.marketPage = marketPage
 
     def update(self) -> Dict[str, core.Snapshot]:
@@ -65,13 +79,15 @@ class Monitor:
         result = {}
 
         for i, collection in enumerate(self.collections.values()):
-            snapshot = self.marketPage.get_snapshot(collection.id, collection.rankID)
+            snapshot = self.marketPage.get_snapshot(
+                collection.id, collection.rankID)
             snapshot = collection.update_snapshot(snapshot)
 
             if not i % 2:
                 # limit to 2 QPS
                 deltaTime = time.time_ns() - startTime
-                interval = 10e9 / (2 * len(network.proxies)) # there may be 2 instead of 1
+                # interval = 10e9 / (2 * len(network.proxies))
+                interval = 10e9 / 2
                 waitInterval = (interval - deltaTime) / 10e9
 
                 if deltaTime < interval:
@@ -95,13 +111,29 @@ class Monitor:
             raise errors.NotValidQuerry(f"CollectionID {collectionID}")
 
         if collectionID in self.collections.keys():
-            raise errors.General(f"Collection {collectionID} is already in monitor")
+            raise errors.General(
+                f"Collection {collectionID} is already in monitor")
 
-        self.collections[collectionID] = CollectionData(collectionID, rankID, FilterData(**filters))
+        self.collections[collectionID] = CollectionData(
+            collectionID, rankID, FilterData(**filters))
 
     def remove_collection(self, collectionID: str):
         if not collectionID in self.collections:
             raise errors.NotValidQuerry(f"CollectionID {collectionID}")
-        
+
         self.collections.pop(collectionID)
 
+    def load_collections(self, filePath: str):
+        with open(filePath, 'r') as f:
+            for rawLine in f.readlines():
+                if rawLine[0] == ';':
+                    continue
+                
+                rawLine = rawLine[:-1]
+                splitLine = rawLine.split(' ')
+
+                collectionID = splitLine[0]
+                rankID = collectionID.replace('_', '')
+                filters = parse_kwargs(splitLine[1:])
+
+                self.add_collection(collectionID, rankID, **filters)

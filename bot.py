@@ -32,7 +32,7 @@ client = commands.Bot(command_prefix='.')
 
 magiceden = meden.Magiceden()
 monitor = Monitor(magiceden)
-
+monitor.load_collections("collections.txt")
 
 
 # Functions
