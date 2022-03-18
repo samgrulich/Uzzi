@@ -1,7 +1,7 @@
+import time
 import requests
+from crossplatform import network
 
-def request(url:str, **kwargs):
-    return requests.get(url, **kwargs)
 
 magicedenAPIS = \
 [
@@ -27,18 +27,27 @@ headers = {
 }
 
 def main():
-    print("listing magiceden")
-    for url in magicedenAPIS:
-        response1 = request(url, headers=headers)
-        response2 = request(url)
-        print("response1: ", response1.status_code, ", response2: ", response2.status_code)
-    
-    print("listing howrare")
-    for url in howrareAPIS:
-        response1 = request(url, headers=headers)
-        response2 = request(url)
-        print("response1: ", response1.status_code, ", response2: ", response2.status_code)
+    print("requesting meden")
+    collectionData = requests.get(magicedenAPIS[0], headers=headers).json()["collections"]
+    collections = [collection["symbol"] for collection in collectionData[:20]]
+
+
+    for i in range(100):
+        
+        for i, collection in enumerate(collections):
+            startTime = time.time_ns()
+            url = 'https://api-mainnet.magiceden.io/rpc/getListedNFTsByQuery?q={"$match":{"collectionSymbol":"' + collection + '"},"$sort":{"createdAt":-1},"$skip":0,"$limit":20}'
+
+            response1 = requests.get(url, headers=headers)
+            response2 = network.safe_get(url, headers=headers)
+
+            if response1.status_code != 200 or response2.status_code != 200:
+                print("response1: ", response1.status_code, ", response2: ", response2.status_code)
+
+            print("delta time: ", (time.time_ns() - startTime) / 10e9, " s, ", i)
 
     print('done')
 
+network.load_proxies("proxies.txt")
 main()
+

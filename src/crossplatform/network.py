@@ -4,7 +4,7 @@ import threading
 
 from typing import List
 from requests.auth import HTTPProxyAuth
-from src.crossplatform.debug import debug_print
+from crossplatform.debug import debug_print
 
 
 proxies = [] # list of ip addresses in strings 
@@ -27,11 +27,12 @@ def safe_get(url: str, limit: int = 5, **kwargs) -> requests.Response:
     response = proxy_request(url, **kwargs)
     loopCount = 0
     
-    while response.status_code != 200 and response.status_code == 429 and loopCount < limit:
+    while response.status_code != 200 and (response.status_code == 429 or loopCount < limit):
         print(f"{loopCount}: server returned code: {response.status_code}, trying again")
         response = proxy_request(url, **kwargs)
         
         if response.status_code == 429:
+            print(response)
             wait_time = response.headers["Retry-After"]
             wait_time = wait_time if wait_time else 1000
 
@@ -75,8 +76,8 @@ def proxy_request(url: str, **kwargs) -> requests.Response:
     with threading.Lock():
         requestCount += 1
     
-    print("requesting ", url)
-    print("  with proxy: ", proxy["http"])
+    # print("requesting ", url)
+    # print("  with proxy: ", proxy["http"])
 
     return requests.get(url, proxies=proxy, **kwargs)
 
