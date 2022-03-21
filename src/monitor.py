@@ -90,20 +90,20 @@ class Monitor:
                 now = time.time_ns()
                 deltaTime = now - startTime
                 # interval = 1e9 / (len(network.proxies))
-                interval = 1e9 
+                interval = 1e9
                 waitInterval = (interval - deltaTime) / 1e9
 
                 if deltaTime < interval:
                     print("wainting for ", waitInterval, " seconds")
                     await asyncio.sleep(waitInterval)
-                
+
                 startTime = time.time_ns()
 
             if snapshot.isEmpty():
                 continue
 
             result[collection.id] = snapshot
-        
+
         print("Total loop time is ", (time.time_ns() - loopTime) / 1e9, " s")
 
         if len(result):
@@ -112,7 +112,8 @@ class Monitor:
         return result
 
     def update_collection(self, collection: CollectionData) -> core.Snapshot:
-        snapshot = self.marketPage.get_snapshot(collection.id, collection.rankID)
+        snapshot = self.marketPage.get_snapshot(
+            collection.id, collection.rankID)
         snapshot = collection.update_snapshot(snapshot)
 
         return snapshot
@@ -139,7 +140,7 @@ class Monitor:
             for rawLine in f.readlines():
                 if rawLine[0] == ';':
                     continue
-                
+
                 rawLine = rawLine.replace('\n', '')
                 splitLine = rawLine.split(' ')
 
