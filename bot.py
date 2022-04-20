@@ -36,8 +36,9 @@ monitor.load_collections("collections.txt")
 
 # Functions
 # region
-def parse_kwargs(args) -> dict:
+def parse_kwargs(args) -> dict, list:
     kwargs = {}
+    args = []
 
     for arg in args:
         string = str(arg)
@@ -45,8 +46,10 @@ def parse_kwargs(args) -> dict:
         if '=' in string:
             key, value = string.split('=', 1)
             kwargs[key] = value
+        else 
+            args.append(string)
 
-    return kwargs
+    return kwargs, args
 
 
 async def create_monitor(collectionId: str, rankId: str, **filters) -> str:
@@ -197,9 +200,10 @@ async def monitorCMD(ctxt):
 async def create(ctxt, collectionId: str, *args):
     await ctxt.send('On it!')
 
-    kwargs = parse_kwargs(args)
+    kwargs, args = parse_kwargs(args)
+    rankCollectionId = collectionId.replace('_', '') if not args else args[0]
     text = await create_monitor(
-        collectionId, collectionId.replace("_", ""), **kwargs)
+        collectionId, rankCollectionId, **kwargs)
 
     await ctxt.send(text)
 
