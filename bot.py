@@ -36,7 +36,7 @@ monitor.load_collections("collections.txt")
 
 # Functions
 # region
-def parse_kwargs(args) -> dict, list:
+def parse_kwargs(args): # -> tuple(dict, list):
     kwargs = {}
     args = []
 
@@ -46,10 +46,10 @@ def parse_kwargs(args) -> dict, list:
         if '=' in string:
             key, value = string.split('=', 1)
             kwargs[key] = value
-        else 
+        else: 
             args.append(string)
 
-    return kwargs, args
+    return (kwargs, args)
 
 
 async def create_monitor(collectionId: str, rankId: str, **filters) -> str:

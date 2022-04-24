@@ -1,10 +1,15 @@
 import logging
+import os
 import time
 import traceback
 import sys
 
-LOG_PATH = "tmp/log.txt"
-LOG_FILENAME = 'tmp/logging_example.out'
+LOG_PATH = "temp/log.txt"
+LOG_FILENAME = 'temp/logging_example.out'
+
+if not os.path.exists("temp"):
+    os.mkdir("temp")
+
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
 
 exc_type, exc_value, exc_traceback = sys.exc_info()

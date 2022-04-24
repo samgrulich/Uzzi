@@ -29,34 +29,44 @@ headers = {
 def main():
     print("requesting meden")
     collectionData = requests.get(magicedenAPIS[0], headers=headers).json()["collections"]
-    collections = [collection["symbol"] for collection in collectionData[:20]]
+    collections = [collection["symbol"] for collection in collectionData]
 
 
-    for i in range(100):
+    for i in range(200):
         
         for i, collection in enumerate(collections):
             startTime = time.time_ns()
             url = 'https://api-mainnet.magiceden.io/rpc/getListedNFTsByQuery?q={"$match":{"collectionSymbol":"' + collection + '"},"$sort":{"createdAt":-1},"$skip":0,"$limit":20}'
 
-            response1 = requests.get(url, headers=headers)
-            response2 = network.safe_get(url, headers=headers)
+            # response1 = requests.get(url, headers=headers)
+            response1 = network.safe_get(url, headers=headers)
 
-            if response1.status_code != 200 or response2.status_code != 200:
-                print("response1: ", response1.status_code, ", response2: ", response2.status_code)
+            # if response1.status_code != 200 or response2.status_code != 200:
+            #     print("response1: ", response1.status_code, ", response2: ", response2.status_code)
 
-            print("delta time: ", (time.time_ns() - startTime) / 10e9, " s, ", i)
-
+            print("delta time: ", (time.time_ns() - startTime) / 10e9, " s, ", i, response1.headers["X-RateLimit-Remaining"])
+            #print(f'''
+            #    delta time: {(time.time_ns() - startTime) / 10e9}s, iter: {i}, resp status: {response1.status_code}
+            #    response:
+            #        $$ headers:
+            #            {response1.headers}
+            #        $$ body:
+            #            {len(response1.json()["results"])}
+            #''')
+            
+            if i >= 115:
+                print(" ")
     print('done')
 
-# network.load_proxies("proxies.txt")
-# main()
+network.load_proxies("proxies.txt")
+main()
 
-for i in range(10):
-    startTime = time.time_ns()
+# for i in range(10):
+#     startTime = time.time_ns()
 
-    time.sleep(i)
+#     time.sleep(i)
 
-    deltaTime = time.time_ns() - startTime
+#     deltaTime = time.time_ns() - startTime
 
-    print(deltaTime)
+#     print(deltaTime)
 
