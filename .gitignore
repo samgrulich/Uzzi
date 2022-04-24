@@ -1,5 +1,7 @@
-__pycache__
+__pycache__/
 */.env
-venv
-temp
+venv/
+temp/
+tmp/
 code.egg-info
+*.swp

@@ -200,7 +200,7 @@ async def monitorCMD(ctxt):
 async def create(ctxt, collectionId: str, *args):
     await ctxt.send('On it!')
 
-    kwargs, args = parse_kwargs(args)
+    (kwargs, args) = parse_kwargs(args)
     rankCollectionId = collectionId.replace('_', '') if not args else args[0]
     text = await create_monitor(
         collectionId, rankCollectionId, **kwargs)

@@ -89,7 +89,7 @@ class Howrare(core.RankPage):
 # private: 
     def _parse_collections(self) -> List[str]:
         url = self.apis[RankPageAPIs.all_collections]()
-        response = network.safe_get(url)
+        response = network.fast_get(url)
 
         if response.status_code != 200:
             raise core_exceptions.NetworkError(f"Couldn't reach all rank collections, code: {response.status_code}, url: {url}")
@@ -102,7 +102,7 @@ class Howrare(core.RankPage):
     def _get_collection_data(self, collectionID: str) -> dict:
         # get collection ranks
         url = self.apis[RankPageAPIs.collection_rate](collectionID)
-        response = network.safe_get(url)
+        response = network.fast_get(url)
 
         if response.status_code != 200:
             raise core_exceptions.NetworkError("Howrare collection request failed")

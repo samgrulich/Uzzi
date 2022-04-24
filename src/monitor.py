@@ -77,34 +77,16 @@ class Monitor:
             raise errors.General(f"There are no collections in {self} monitor")
 
         result = {}
-        startTime = time.time_ns()
-        loopTime = time.time_ns()
 
         for i, collection in enumerate(self.collections.values()):
             snapshot = self.marketPage.get_snapshot(
                 collection.id, collection.rankID)
             snapshot = collection.update_snapshot(snapshot)
 
-            if not i % 2:
-                # limit to 2 QPS
-                now = time.time_ns()
-                deltaTime = now - startTime
-                # interval = 1e9 / (len(network.proxies))
-                interval = 1e9
-                waitInterval = (interval - deltaTime) / 1e9
-
-                if deltaTime < interval:
-                    print("wainting for ", waitInterval, " seconds")
-                    await asyncio.sleep(waitInterval)
-
-                startTime = time.time_ns()
-
             if snapshot.isEmpty():
                 continue
 
             result[collection.id] = snapshot
-
-        print("Total loop time is ", (time.time_ns() - loopTime) / 1e9, " s")
 
         if len(result):
             debug_print(f"Update result len: {len(result)}", "Monitor")
@@ -142,10 +124,12 @@ class Monitor:
                     continue
 
                 rawLine = rawLine.replace('\n', '')
-                splitLine = rawLine.split(' ')
+                ids, kwargs = rawLine.split(', ')
+                ids = ids.split(' ')
+                kwargs = kwargs.split(' ')
 
-                collectionID = splitLine[0]
-                rankID = collectionID.replace('_', '')
-                filters = parse_kwargs(splitLine[1:])
+                collectionID = ids[0]
+                rankID = ids[1] if len(ids) == 2 else collectionID.replace('_', '')
+                filters = parse_kwargs(kwargs)
 
                 self.add_collection(collectionID, rankID, **filters)

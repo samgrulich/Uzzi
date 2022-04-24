@@ -1,19 +1,19 @@
-solderland_bunnies rank=1000 price=1.2
-drippies rank=1000 price=2.1
-solana_hodl_whales rank=1000 price=6
-jambo_mambo rank=500 price=4.2
-;dazedducks_metagalactic_club rank=2000 price=6.7 -- not valid
-quantum_traders rank=1000 price=7.5
-solana_monke_rejects rank=2000 price=3.3
-dronies rank=1000 price=1.8
-;mrn_s1_vikings_premium_drop rank=2000 price=2 -- not valid
-panzerdogs rank=2000 price=3.2
-bohemia_ rank=1000 price=5
-danger_valley_ducks rank=2000 price=2.1
-;rudegolems rank=3000 price=3.5 -- not valid
-artpunks rank=2000 price=5
-astrals rank=1000 price=4.5
-stylish_studs rank=7000 price=3.5
-yaku_corp rank=1000 price=6
-botborgs rank=1000 price=2.5
-bobos_of_war rank=2000 price=2
+solderland_bunnies, rank=1000 price=1.2
+drippies, rank=1000 price=2.1
+solana_hodl_whales, rank=1000 price=6
+jambo_mambo, rank=500 price=4.2
+;dazedducks_metagalactic_club, rank=2000 price=6.7 -- not valid
+quantum_traders, rank=1000 price=7.5
+solana_monke_rejects, rank=2000 price=3.3
+dronies, rank=1000 price=1.8
+;mrn_s1_vikings_premium_drop, rank=2000 price=2 -- not valid
+panzerdogs, rank=2000 price=3.2
+bohemia_, rank=1000 price=5
+danger_valley_ducks, rank=2000 price=2.1
+;rudegolems, rank=3000 price=3.5 -- not valid
+artpunks, rank=2000 price=5
+astrals, rank=1000 price=4.5
+stylish_studs, rank=7000 price=3.5
+yaku_corp, rank=1000 price=6
+botborgs, rank=1000 price=2.5
+bobos_of_war, rank=2000 price=2

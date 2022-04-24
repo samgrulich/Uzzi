@@ -48,7 +48,7 @@ def safe_get(url: str, limit: int = 5, **kwargs) -> requests.Response:
 
     return response
 
-def proxy_get(url: str, **kwargs):
+def proxy_get(url: str, **kwargs) -> requests.Response:
     global proxies
     global requestCount
 
@@ -58,9 +58,12 @@ def proxy_get(url: str, **kwargs):
         requestCount += 1
     
     print("requesting ", url)
-    print("  with proxy: ", proxies[proxyIndex]["http"])
+    # print("  with proxy: ", proxies[proxyIndex]["http"])
 
     return requests.get(url, proxies=proxies[proxyIndex], **kwargs)
+
+def fast_get(url: str, **kwargs) -> requests.Response:
+    return requests.get(url, **kwargs)
 
 # TODO: check if the path is valid
 def load_proxies(file_path: str):
@@ -73,12 +76,4 @@ def load_proxies(file_path: str):
             data = f"http://{data}/"
             proxies.append({"http": data, "https": data})
 
-    print(proxies)
-
-
-def request(url: str, **kwargs) -> requests.Response:
-    """
-    For public use, when you need to switch type of request just edit the body of this function
-    """
-
-    return safe_get(url, **kwargs)
+    # print(proxies)
