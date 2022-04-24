@@ -39,7 +39,7 @@ def main():
             url = 'https://api-mainnet.magiceden.io/rpc/getListedNFTsByQuery?q={"$match":{"collectionSymbol":"' + collection + '"},"$sort":{"createdAt":-1},"$skip":0,"$limit":20}'
 
             # response1 = requests.get(url, headers=headers)
-            response1 = network.safe_get(url, headers=headers)
+            response1 = network.request(url, headers=headers)
 
             # if response1.status_code != 200 or response2.status_code != 200:
             #     print("response1: ", response1.status_code, ", response2: ", response2.status_code)

@@ -1,0 +1,58 @@
+Tue Mar 15 10:26:30 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:26:30 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:26:40 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:26:40 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:26:50 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:26:50 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:27:00 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:27:00 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:27:10 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:27:10 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:27:20 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:27:20 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:27:40 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:27:40 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:27:50 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:27:50 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:28:00 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:28:00 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:28:10 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:28:10 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:28:20 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:28:20 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:28:30 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:28:30 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:28:40 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:28:40 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:28:50 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:28:50 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:29:00 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:29:00 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:29:10 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:29:10 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:29:20 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:29:20 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:29:30 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:29:30 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:29:40 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:29:40 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:29:50 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:29:50 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:30:00 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:30:00 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 10:30:10 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f37c4d82c70> monitor 
+Tue Mar 15 10:30:10 2022, Bot: Exception: ("local variable 'snapshots' referenced before assignment",) 
+Tue Mar 15 15:38:10 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7fa436781b50> monitor 
+Tue Mar 15 15:38:20 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7fa436781b50> monitor 
+Tue Mar 15 15:38:30 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7fa436781b50> monitor 
+Tue Mar 15 15:38:40 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7fa436781b50> monitor 
+Tue Mar 15 15:38:50 2022, Bot: 'NoneType' object has no attribute 'isEmpty' 
+Tue Mar 15 15:39:00 2022, Bot: 'NoneType' object has no attribute 'isEmpty' 
+Tue Mar 15 15:39:10 2022, Bot: 'NoneType' object has no attribute 'isEmpty' 
+Tue Mar 15 15:39:20 2022, Bot: 'NoneType' object has no attribute 'isEmpty' 
+Tue Mar 15 15:39:30 2022, Bot: 'NoneType' object has no attribute 'isEmpty' 
+Tue Mar 15 15:40:40 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f5807d81be0> monitor 
+Tue Mar 15 15:47:50 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f3e08c503d0> monitor 
+Tue Mar 15 15:51:20 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f5af75c7490> monitor 
+Tue Mar 15 15:52:10 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7f79451983d0> monitor 
+Tue Mar 15 15:52:40 2022, Bot: <class 'crossplatform.core_exceptions.General'>There are no collections in <monitor.Monitor object at 0x7ff7382e0dc0> monitor 
