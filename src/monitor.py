@@ -1,12 +1,15 @@
 import asyncio
+import collections
 import meden
 import time
+from concurrent.futures import ThreadPoolExecutor
 from crossplatform import core, core_types, network
 from crossplatform import core_exceptions as errors
 
-from typing import List, Dict
-
+# debug imports
+from typing import List, Dict, Tuple
 from crossplatform.debug import debug_print
+
 
 
 def parse_kwargs(args) -> dict:
@@ -76,29 +79,29 @@ class Monitor:
         if self.collections == {}:
             raise errors.General(f"There are no collections in {self} monitor")
 
-        result = {}
+        startTime = time.time_ns()
+        print("loop start ")
 
-        for i, collection in enumerate(self.collections.values()):
-            snapshot = self.marketPage.get_snapshot(
-                collection.id, collection.rankID)
-            snapshot = collection.update_snapshot(snapshot)
+        with ThreadPoolExecutor(max_workers=100) as executor:
+            thread1 = executor.map(self.update_collection, self.collections.values())
 
-            if snapshot.isEmpty():
-                continue
-
-            result[collection.id] = snapshot
+        rawSnaps = [result for result in list(thread1)]
+        validSnaps = list(filter(lambda snapTuple: not snapTuple[1].isEmpty(), rawSnaps)) 
+        result = {snapTuple[0]: snapTuple[1] for snapTuple in validSnaps}
 
         if len(result):
             debug_print(f"Update result len: {len(result)}", "Monitor")
 
+        print("loop done", time.time_ns() - startTime)
+
         return result
 
-    def update_collection(self, collection: CollectionData) -> core.Snapshot:
+    def update_collection(self, collection: CollectionData) -> Tuple[str, core.Snapshot]:
         snapshot = self.marketPage.get_snapshot(
             collection.id, collection.rankID)
         snapshot = collection.update_snapshot(snapshot)
 
-        return snapshot
+        return (collection.id, snapshot)
 
     def add_collection(self, collectionID: str, rankID: str, **filters) -> None:
         if not self.marketPage._check_collection(collectionID):

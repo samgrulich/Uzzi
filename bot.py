@@ -214,7 +214,7 @@ async def delete(ctxt, id: str):
     await ctxt.send(text)
 
 
-@tasks.loop(seconds=int(1))
+@tasks.loop(seconds=int(10))
 async def main_loop(channel):
     try:
         await update(channel)
